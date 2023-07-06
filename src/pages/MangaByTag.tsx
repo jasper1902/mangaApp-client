@@ -1,0 +1,64 @@
+import { useState, useEffect } from "react";
+import { Link, useParams } from "react-router-dom";
+
+import Breadcrumb from "../components/Breadcrumb";
+import Mangas from "./Mangas";
+import {
+  fetchMangaList,
+  mangaListSelector,
+} from "../store/slice/mangaListSlice";
+import { useAppDispatch } from "../store/store";
+import { useSelector } from "react-redux";
+
+const MangaByTag = () => {
+  const dispatch = useAppDispatch();
+  const mangaListReducer = useSelector(mangaListSelector);
+  const [mangaCategory, setMangaCategory] = useState<boolean>();
+  const { category } = useParams();
+
+  useEffect(() => {
+    category === "manga" ? setMangaCategory(true) : setMangaCategory(false);
+    const fetchData = async () => {
+      if (category) {
+        dispatch(fetchMangaList());
+      }
+    };
+    fetchData();
+  }, [category, dispatch]);
+
+  return (
+    <>
+      {!mangaCategory ? (
+        <div className="container mx-auto max-w-screen-xl mt-3">
+          <Breadcrumb />
+          <div className="grid grid-cols-4 gap-4 mt-5">
+            {mangaListReducer.map((manga, index) => (
+              <div
+                className="card bg-base-100 shadow-xl hover:scale-105 hover:transition-all duration-500"
+                key={index}
+              >
+                <Link to={`/manga/${manga.slug}`}>
+                  <figure>
+                    <img
+                      src={`${import.meta.env.VITE_IMG_URL}/src/assets${
+                        manga.image
+                      }`}
+                      alt=""
+                    />
+                  </figure>
+                  <div className="card-body">
+                    <h2 className="card-title">{manga.title}</h2>
+                  </div>
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <Mangas />
+      )}
+    </>
+  );
+};
+
+export default MangaByTag;

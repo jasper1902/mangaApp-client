@@ -1,35 +1,102 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Suspense, lazy } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Nav from "./components/Nav";
+import Loading from "./components/Loading";
+import PrivateRoute from "./components/Admin/PrivateRoute";
+import Mangas from "./pages/Mangas";
+import MangaByTag from "./pages/MangaByTag";
+import Dashboard from "./pages/Admin/Dashboard";
+import MangaDetailAdmin from "./pages/Admin/MangaDetailAdmin";
+import { userSelector } from "./store/slice/userSlice";
+import MangaCreate from "./pages/Admin/MangaCreate";
+import BookCreate from "./pages/Admin/BookCreate";
 
-function App() {
-  const [count, setCount] = useState(0)
+const MangaDetail = lazy(() => import("./pages/MangaDetail"));
+const MangaBookDetail = lazy(() => import("./pages/MangaBookDetail"));
+
+const App = () => {
+  const userReducer = useSelector(userSelector);
+  const fallbackLoader = <Loading />;
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <Router>
+      <Nav />
+      <Suspense fallback={fallbackLoader}>
+        <Routes>
+          <Route path="/" element={<Mangas />} />
+          <Route path="/:category" element={<MangaByTag />} />
+          <Route
+            path="/manga/:slug"
+            element={
+              <Suspense fallback={fallbackLoader}>
+                <MangaDetail />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/manga/:name/:book/:bookId"
+            element={
+              <Suspense fallback={fallbackLoader}>
+                <MangaBookDetail />
+              </Suspense>
+            }
+          />
 
-export default App
+          {userReducer.user.role && (
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute
+                  element={<Dashboard />}
+                  role={userReducer.user.role}
+                />
+              }
+            />
+          )}
+
+          {userReducer.user.role && (
+            <Route
+              path="/admin/manga/:slug"
+              element={
+                <PrivateRoute
+                  element={<MangaDetailAdmin />}
+                  role={userReducer.user.role}
+                />
+              }
+            />
+          )}
+
+          {userReducer.user.role && (
+            <Route
+              path="/admin/manga/create"
+              element={
+                <PrivateRoute
+                  element={<MangaCreate />}
+                  role={userReducer.user.role}
+                />
+              }
+            />
+          )}
+
+          {userReducer.user.role && (
+            <Route
+              path="/admin/manga/book/:mangaId"
+              element={
+                <PrivateRoute
+                  element={<BookCreate />}
+                  role={userReducer.user.role}
+                />
+              }
+            />
+          )}
+        </Routes>
+      </Suspense>
+      <ToastContainer />
+    </Router>
+  );
+};
+
+export default App;
