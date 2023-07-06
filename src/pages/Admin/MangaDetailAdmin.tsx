@@ -32,7 +32,7 @@ const Manga = () => {
   const { slug } = useParams();
   const [manga, setManga] = useState<MangaTypeList | null>(null);
   const [books, setBooks] = useState<BookType[]>([]);
-  const [onProgress, setNnProgress] = useState<number | null>(null);
+  const [onProgress, setOnProgress] = useState<number | null>(null);
   const [uploader, setUploader] = useState("");
   const navigate = useNavigate();
 
@@ -195,6 +195,7 @@ const Manga = () => {
       Swal.fire("Cancelled", "Your imaginary file is safe :)", "error");
     }
   };
+
   if (!manga) {
     return null;
   }
@@ -207,18 +208,46 @@ const Manga = () => {
             ...manga,
           }}
           onSubmit={async (values: typeof manga) => {
-            const response = await updateMangaDetail(
-              values,
-              userReducer.user.token,
-              manga._id,
-              setNnProgress
-            );
-            if (response?.status !== 200) {
-              toast.error("Failed to update manga book", toastOptions);
-              return;
+            const showConfirmationDialog = async () => {
+              const swalWithBootstrapButtons = Swal.mixin({
+                customClass: {
+                  confirmButton: "btn btn-success m-3",
+                  cancelButton: "btn btn-error m-3",
+                },
+                buttonsStyling: false,
+              });
+
+              const result = await swalWithBootstrapButtons.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, delete it!",
+                cancelButtonText: "No, cancel!",
+                reverseButtons: true,
+              });
+
+              return result;
+            };
+
+            const result = await showConfirmationDialog();
+
+            if (result.isConfirmed) {
+              const response = await updateMangaDetail(
+                values,
+                userReducer.user.token,
+                manga._id,
+                setOnProgress
+              );
+              if (response?.status !== 200) {
+                toast.error("Failed to update manga book", toastOptions);
+                return;
+              }
+              toast.success(response.data.message, toastOptions);
+              navigate("/dashboard");
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+              Swal.fire("Cancelled", "Your imaginary file is safe :)", "error");
             }
-            toast.success(response.data.message, toastOptions);
-            navigate("/dashboard");
           }}
         >
           {({ values, setFieldValue }) => (
@@ -243,6 +272,7 @@ const Manga = () => {
                             manga.image
                           }`}
                           alt=""
+                          draggable={false}
                         />
 
                         <div>
@@ -270,6 +300,7 @@ const Manga = () => {
                         <button
                           className="btn btn-error"
                           onClick={onClickDeleteManga}
+                          type="button"
                         >
                           Delete
                         </button>
@@ -311,7 +342,10 @@ const Manga = () => {
                       </div>
                       <div className="overflow-x-auto h-96 scrollbar-thin scrollbar-thumb-gray-900 scrollbar-track-gray-100">
                         <Link to={`/admin/manga/book/${manga._id}`}>
-                          <button className="btn btn-success my-3">
+                          <button
+                            className="btn btn-success my-3"
+                            type="button"
+                          >
                             <FaPlus />
                             Add new book
                           </button>

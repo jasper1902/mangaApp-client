@@ -29,7 +29,7 @@ const BookCreate = () => {
   const userReducer = useSelector(userSelector);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [manga, setManga] = useState<MangaTypeList | null>(null);
-  const [onProgress, setNnProgress] = useState<number | null>(null);
+  const [onProgress, setOnProgress] = useState<number | null>();
 
   const { mangaId }: { mangaId?: string } = useParams();
   const navigate = useNavigate();
@@ -76,7 +76,7 @@ const BookCreate = () => {
             userReducer.user.token,
             values,
             mangaId as string,
-            setNnProgress
+            setOnProgress
           );
           if (response?.status !== 200) {
             toast.error("Failed to create manga book", toastOptions);

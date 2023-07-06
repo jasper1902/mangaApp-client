@@ -16,7 +16,11 @@ export const fetchUsername = async (userId: string) => {
   return response.data;
 };
 
-export const createManga = async (values: CreateMangaType, token: string) => {
+export const createManga = async (
+  values: CreateMangaType,
+  token: string,
+  setProgress: (progress: number) => void
+) => {
   const formData = new FormData();
   formData.append("title", values.title);
   formData.append("description", values.description);
@@ -31,9 +35,19 @@ export const createManga = async (values: CreateMangaType, token: string) => {
   const response = await axios.post(
     `${apiBaseUrl}/api/manga/create`,
     formData,
-    { headers: { Authorization: `token ${token}` } }
+    {
+      headers: { Authorization: `token ${token}` },
+      onUploadProgress: (progressEvent: AxiosProgressEvent) => {
+        if (progressEvent.total !== undefined) {
+          const progress = Math.round(
+            (progressEvent.loaded / progressEvent.total) * 100
+          );
+          setProgress(progress);
+        }
+      },
+    }
   );
-  return response.data;
+  return response;
 };
 
 export const deleteManga = async (id: string, token: string) => {
