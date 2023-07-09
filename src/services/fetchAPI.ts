@@ -67,7 +67,7 @@ export const createMangaBook = async (
     return;
   }
   const formData = new FormData();
-  formData.append("book", String(values.book));
+  formData.append("type", String(values.type));
   formData.append("slug", values.slug);
   formData.append("mangaID", mangaId);
   formData.append("title", values.title);

@@ -6,10 +6,10 @@ import { Link, useParams } from "react-router-dom";
 type Props = {
   title?: string;
   slug?: string;
-  book?: string;
+
 };
 
-const Breadcrumb: React.FC<Props> = ({ title, book }) => {
+const Breadcrumb: React.FC<Props> = ({ title }) => {
   const { category, name } = useParams();
   return (
     <nav className="flex py-3 px-5 " aria-label="Breadcrumb">
@@ -46,16 +46,7 @@ const Breadcrumb: React.FC<Props> = ({ title, book }) => {
           </div>
         </li>
 
-        {title && book && (
-          <li aria-current="page">
-            <div className="flex items-center">
-              <MdOutlineArrowForwardIos />
-              <span className="ml-1 md:ml-2 text-sm font-medium ">
-                <p>เล่มที่ {book}</p>
-              </span>
-            </div>
-          </li>
-        )}
+        
       </ol>
     </nav>
   );

@@ -21,6 +21,8 @@ const initialMangaState: MangaTypeList = {
 };
 
 interface BookType {
+  type: "book" | "chapter" ;
+  title: string;
   _id: string;
   book: number;
   slug: string;
@@ -57,6 +59,7 @@ const Manga = () => {
     );
     return book;
   };
+  console.log(books)
   return (
     <>
       <div className="containe max-w-screen-lg mx-auto">
@@ -89,11 +92,11 @@ const Manga = () => {
                     <tr key={index}>
                       <td className="p-0 m-0">
                         <Link
-                          to={`/manga/${manga.slug}/${book.book}/${book._id}`}
+                          to={`/manga/${manga.slug}/${book.type}/${book.slug}`}
                         >
                           <div className="hover:bg-accent text-base flex items-center gap-2 cursor-pointer p-4">
                             <TfiBook />
-                            {manga.title} เล่มที่ {book.book}
+                            {book.title} 
                           </div>
                         </Link>
                       </td>

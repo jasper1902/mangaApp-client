@@ -37,7 +37,7 @@ const App = () => {
             }
           />
           <Route
-            path="/manga/:name/:book/:bookId"
+            path="/manga/:name/:book/:bookSlug"
             element={
               <Suspense fallback={fallbackLoader}>
                 <MangaBookDetail />

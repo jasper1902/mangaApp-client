@@ -22,6 +22,8 @@ import { Field, Form, Formik, FormikHelpers } from "formik";
 import { toastOptions } from "../../services/option";
 
 interface BookType {
+  type: "book" | "chapter" ;
+  title: string;
   _id: string;
   book: number;
   slug: string;
@@ -363,9 +365,9 @@ const Manga = () => {
                                   <div className="flex items-center gap-2">
                                     <TfiBook />
                                     <Link
-                                      to={`/manga/${manga.slug}/${book.book}/${book._id}`}
+                                      to={`/manga/${manga.slug}/${book.type}/${book.slug}`}
                                     >
-                                      {manga.title} เล่มที่ {book.book}
+                                      {book.title}
                                     </Link>
                                   </div>
                                   <div

@@ -10,19 +10,19 @@ import { toastOptions } from "../../services/option";
 import { toast } from "react-toastify";
 
 export interface CreateMangaBookType {
-  book: number;
   slug: string;
   image?: File[];
   author: string;
   title: string | null;
+  type: "book" | "chapter" | "video";
 }
 
 const initialValues: CreateMangaBookType = {
-  book: 0,
   slug: "",
   image: [],
   title: "",
   author: "",
+  type: "book",
 };
 
 const BookCreate = () => {
@@ -126,14 +126,17 @@ const BookCreate = () => {
                       />
 
                       <label className="label">
-                        <span className="label-text">Book</span>
+                        <span className="label-text">Type</span>
                       </label>
                       <Field
-                        type="number"
-                        placeholder="Book"
-                        className="input input-bordered input-primary w-full"
-                        name="book"
-                      />
+                        as="select"
+                        className="select select-bordered select-primary w-full"
+                        name="type"
+                      >
+                        <option value="book">Book</option>
+                        <option value="chapter">Chapter</option>
+                        <option value="video">Video</option>
+                      </Field>
 
                       <label className="label">
                         <span className="label-text">Slug</span>

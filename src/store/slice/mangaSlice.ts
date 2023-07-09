@@ -30,10 +30,10 @@ const mangaSlice = createSlice({
 
 export const fetchMangaBook = createAsyncThunk(
   "manga/book",
-  async (BookId: string, { dispatch }) => {
+  async (bookSlug: string, { dispatch }) => {
     try {
       const manga = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/manga/book/${BookId}`
+        `${import.meta.env.VITE_API_URL}/api/manga/book-slug/${bookSlug}`
       );
 
       dispatch(updateManga(manga.data));
