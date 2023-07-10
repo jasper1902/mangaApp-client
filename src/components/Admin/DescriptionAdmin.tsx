@@ -1,9 +1,9 @@
 import React from "react";
 import Breadcrumb from "../Breadcrumb";
 import { TbFileDescription } from "react-icons/tb";
-import { MangaTypeList } from "../../store/slice/mangaListSlice";
 import { RxCross2 } from "react-icons/rx";
 import { Field, FieldArray } from "formik";
+import { MangaTypeList } from "../../types/manga.type";
 
 type Props = {
   manga: MangaTypeList;

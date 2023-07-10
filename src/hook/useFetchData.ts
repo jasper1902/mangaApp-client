@@ -11,7 +11,10 @@ type ApiResponse<T> = {
   statusText: string | null;
 };
 
-export const useFetchData = <T>(url: string): ApiResponse<T> => {
+export const useFetchData = <T>(
+  url: string,
+  token?: string
+): ApiResponse<T> => {
   const [data, setData] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -30,6 +33,7 @@ export const useFetchData = <T>(url: string): ApiResponse<T> => {
       try {
         source = axios.CancelToken.source();
         const response: AxiosResponse<T> = await axios.get(url, {
+          headers: { Authorization: `token ${token}` },
           cancelToken: source.token,
         });
         if (response.statusText !== "OK") {

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { AiFillDelete } from "react-icons/ai";
 import { useSelector } from "react-redux";
@@ -17,7 +17,7 @@ import { toastOptions } from "../../services/option";
 import { useFetchData } from "../../hook/useFetchData";
 import { usePutRequest } from "../../hook/usePutRequest";
 
-const Manga = () => {
+const MangaDetailAdmin = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const userReducer = useSelector(userSelector);
@@ -26,7 +26,7 @@ const Manga = () => {
     `${import.meta.env.VITE_API_URL}/api/manga/${slug}`
   );
 
-  const [putData, { statusText, status, progress, hasError, errorMessage}] =
+  const [putData, { statusText, hasError, errorMessage }] =
     usePutRequest<MangaTypeList>(
       `${import.meta.env.VITE_API_URL}/api/manga/update/${data?._id}`,
       userReducer.user.token
@@ -56,49 +56,45 @@ const Manga = () => {
     if (hasError) {
       toast.error(errorMessage, toastOptions);
     }
-  }, [errorMessage, hasError, navigate, status, statusText]);
+  }, [errorMessage, hasError, navigate, statusText]);
+
+  const showConfirmationDialog = async (title: string): Promise<boolean> => {
+    const swalWithBootstrapButtons = Swal.mixin({
+      customClass: {
+        confirmButton: "btn btn-success m-3",
+        cancelButton: "btn btn-error m-3",
+      },
+      buttonsStyling: false,
+    });
+
+    const result = await swalWithBootstrapButtons.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, " + title + " it!",
+      cancelButtonText: "No, cancel!",
+      reverseButtons: true,
+    });
+
+    return result.isConfirmed;
+  };
 
   const onClickDeleteMangaBook = async (bookId: string) => {
-    const showConfirmationDialog = async () => {
-      const swalWithBootstrapButtons = Swal.mixin({
-        customClass: {
-          confirmButton: "btn btn-success m-3",
-          cancelButton: "btn btn-error m-3",
-        },
-        buttonsStyling: false,
-      });
+    if (!data) return;
 
-      const result = await swalWithBootstrapButtons.fire({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, delete it!",
-        cancelButtonText: "No, cancel!",
-        reverseButtons: true,
-      });
+    const confirmed = await showConfirmationDialog("delete");
+    if (!confirmed) return;
 
-      return result;
-    };
+    const response = await deleteMangaBook(
+      data._id,
+      bookId,
+      userReducer.user.token
+    );
 
-    const result = await showConfirmationDialog();
-    if (!data) {
-      return;
-    }
-
-    if (result.isConfirmed) {
-      const response = await deleteMangaBook(
-        data._id,
-        bookId,
-        userReducer.user.token
-      );
-
-      if (response.status === 200) {
-        showSuccessToast(response.data.message);
-        navigate("/dashboard");
-      }
-    } else if (result.dismiss === Swal.DismissReason.cancel) {
-      Swal.fire("Cancelled", "Your imaginary file is safe :)", "error");
+    if (response.status === 200) {
+      showSuccessToast(response.data.message);
+      navigate("/dashboard");
     }
   };
 
@@ -116,43 +112,16 @@ const Manga = () => {
   };
 
   const onClickDeleteManga = async () => {
-    const showConfirmationDialog = async () => {
-      const swalWithBootstrapButtons = Swal.mixin({
-        customClass: {
-          confirmButton: "btn btn-success m-3",
-          cancelButton: "btn btn-error m-3",
-        },
-        buttonsStyling: false,
-      });
+    if (!data) return;
 
-      const result = await swalWithBootstrapButtons.fire({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, delete it!",
-        cancelButtonText: "No, cancel!",
-        reverseButtons: true,
-      });
+    const confirmed = await showConfirmationDialog("delete");
+    if (!confirmed) return;
 
-      return result;
-    };
+    const response = await deleteManga(data._id, userReducer.user.token);
 
-    const result = await showConfirmationDialog();
-
-    if (!data) {
-      return;
-    }
-
-    if (result.isConfirmed) {
-      const response = await deleteManga(data._id, userReducer.user.token);
-
-      if (response.status === 200) {
-        showSuccessToast(response.data.message);
-        navigate("/dashboard");
-      }
-    } else if (result.dismiss === Swal.DismissReason.cancel) {
-      Swal.fire("Cancelled", "Your imaginary file is safe :)", "error");
+    if (response.status === 200) {
+      showSuccessToast(response.data.message);
+      navigate("/dashboard");
     }
   };
 
@@ -161,202 +130,157 @@ const Manga = () => {
   }
 
   return (
-    <>
-      <div className="container max-w-screen-lg mx-auto">
-        <Formik
-          initialValues={{
-            ...data,
-          }}
-          onSubmit={async (values: typeof data) => {
-            const showConfirmationDialog = async () => {
-              const swalWithBootstrapButtons = Swal.mixin({
-                customClass: {
-                  confirmButton: "btn btn-success m-3",
-                  cancelButton: "btn btn-error m-3",
-                },
-                buttonsStyling: false,
-              });
+    <div className="container max-w-screen-lg mx-auto">
+      <Formik
+        initialValues={{
+          ...data,
+        }}
+        onSubmit={async (values: typeof data) => {
+          const confirmed = await showConfirmationDialog("update");
+          if (!confirmed) return;
 
-              const result = await swalWithBootstrapButtons.fire({
-                title: "Are you sure?",
-                text: "You won't be able to revert this!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Yes, update it!",
-                cancelButtonText: "No, cancel!",
-                reverseButtons: true,
-              });
+          const formData = new FormData();
 
-              return result;
-            };
+          const { title, description, slug, image, tagList } = values;
 
-            const result = await showConfirmationDialog();
+          formData.append("title", title);
+          formData.append("description", description || "");
+          formData.append("slug", slug);
 
-            if (result.isConfirmed) {
-              const formData = new FormData();
+          if (image) {
+            formData.append("image", image);
+          }
 
-              const { title, description, slug, image, tagList } = values;
+          if (tagList?.length) {
+            tagList.forEach((tag, index) => {
+              formData.append(`tagList[${index}]`, tag);
+            });
+          }
 
-              formData.append("title", title);
-              formData.append("description", description || "");
-              formData.append("slug", slug);
+          putData(formData);
+        }}
+      >
+        {({ values, setFieldValue }) => (
+          <Form>
+            {data && <DescriptionAdmin manga={data} values={values} />}
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-4">
+                <div>
+                  <img
+                    src={`${import.meta.env.VITE_IMG_URL}/src/assets${
+                      data.image
+                    }`}
+                    alt=""
+                    draggable={false}
+                  />
 
-              if (image) {
-                formData.append("image", image);
-              }
-
-              if (tagList?.length) {
-                tagList.forEach((tag, index) => {
-                  formData.append(`tagList[${index}]`, tag);
-                });
-              }
-
-              putData(formData);
-            } else if (result.dismiss === Swal.DismissReason.cancel) {
-              Swal.fire("Cancelled", "Your imaginary file is safe :)", "error");
-            }
-          }}
-        >
-          {({ values, setFieldValue }) => (
-            <Form>
-              {progress ? (
-                <div className="flex items-center justify-center">
-                  <div
-                    className="radial-progress bg-primary text-primary-content border-4 border-primary mt-5 h-52 w-52"
-                    style={{ "--value": progress } as React.CSSProperties}
-                  >
-                    {progress}%
+                  <div>
+                    <label className="label">
+                      <span className="label-text">Image</span>
+                    </label>
+                    <input
+                      type="file"
+                      className="file-input file-input-bordered file-input-primary w-full max-w-xs"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange(e, setFieldValue)}
+                      ref={fileInputRef}
+                    />
                   </div>
                 </div>
-              ) : (
-                <>
-                  {data && <DescriptionAdmin manga={data} values={values} />}
-                  <div className="grid grid-cols-12 gap-4">
-                    <div className="col-span-4">
-                      <div>
-                        <img
-                          src={`${import.meta.env.VITE_IMG_URL}/src/assets${
-                            data.image
-                          }`}
-                          alt=""
-                          draggable={false}
-                        />
 
-                        <div>
-                          <label className="label">
-                            <span className="label-text">Image</span>
-                          </label>
-                          <input
-                            type="file"
-                            className="file-input file-input-bordered file-input-primary w-full max-w-xs"
-                            accept="image/*"
-                            onChange={(e) => handleFileChange(e, setFieldValue)}
-                            ref={fileInputRef}
-                          />
-                        </div>
-                      </div>
+                <div>
+                  <p>uploader: {data.uploader}</p>
+                  <p>createdAt: {dateString(data.createdAt)}</p>
+                  <p>updatedAt: {dateString(data.updatedAt)}</p>
+                </div>
 
-                      <div>
-                        <p>uploader: {data.uploader}</p>
-                        <p>createdAt: {dateString(data.createdAt)}</p>
-                        <p>updatedAt: {dateString(data.updatedAt)}</p>
-                      </div>
+                <div className="flex items-center justify-around mt-5">
+                  <button
+                    className="btn btn-error"
+                    onClick={onClickDeleteManga}
+                    type="button"
+                  >
+                    Delete
+                  </button>
 
-                      <div className="flex items-center justify-around mt-5">
-                        <button
-                          className="btn btn-error"
-                          onClick={onClickDeleteManga}
-                          type="button"
-                        >
-                          Delete
-                        </button>
+                  <button className="btn btn-success" type="submit">
+                    Update
+                  </button>
+                </div>
+              </div>
 
-                        <button className="btn btn-success" type="submit">
-                          Update
-                        </button>
-                      </div>
-                    </div>
+              <div className="col-span-8">
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Description</span>
+                  </label>
 
-                    <div className="col-span-8">
-                      <div className="form-control">
-                        <label className="label">
-                          <span className="label-text">Description</span>
-                        </label>
+                  <Field
+                    as="textarea"
+                    type="text"
+                    placeholder="Description"
+                    className="textarea textarea-bordered textarea-primary textarea-lg w-full overflow-x-auto scrollbar-thin scrollbar-thumb-gray-900 scrollbar-track-gray-100 h-80"
+                    name="description"
+                  />
+                </div>
 
-                        <Field
-                          as="textarea"
-                          type="text"
-                          placeholder="Description"
-                          className="textarea textarea-bordered textarea-primary textarea-lg w-full overflow-x-auto scrollbar-thin scrollbar-thumb-gray-900 scrollbar-track-gray-100 h-80"
-                          name="description"
-                        />
-                      </div>
+                <div>
+                  <div className="form-control w-full max-w-xs">
+                    <label className="label">
+                      <span className="label-text">Slug</span>
+                    </label>
 
-                      <div>
-                        <div className="form-control w-full max-w-xs">
-                          <label className="label">
-                            <span className="label-text">Slug</span>
-                          </label>
-
-                          <Field
-                            type="text"
-                            placeholder="Slug"
-                            className="input input-bordered input-primary w-full"
-                            name="slug"
-                          />
-                        </div>
-                      </div>
-                      <div className="overflow-x-auto h-96 scrollbar-thin scrollbar-thumb-gray-900 scrollbar-track-gray-100">
-                        <Link to={`/admin/manga/book/${data.slug}`}>
-                          <button
-                            className="btn btn-success my-3"
-                            type="button"
-                          >
-                            <FaPlus />
-                            Add new book
-                          </button>
-                        </Link>
-                        <table className="table table-pin-rows">
-                          <thead>
-                            <tr>
-                              <th>Chapter List</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {data.chapters?.map((book) => (
-                              <tr key={book._id} className="flex items-center ">
-                                <td className="hover:bg-accent text-base flex items-center w-full justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <TfiBook />
-                                    <Link
-                                      to={`/manga/${data.slug}/${book.type}/${book.slug}`}
-                                    >
-                                      {book.title}
-                                    </Link>
-                                  </div>
-                                  <div
-                                    onClick={() =>
-                                      onClickDeleteMangaBook(book._id)
-                                    }
-                                  >
-                                    <AiFillDelete className="cursor-pointer" />
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
+                    <Field
+                      type="text"
+                      placeholder="Slug"
+                      className="input input-bordered input-primary w-full"
+                      name="slug"
+                    />
                   </div>
-                </>
-              )}
-            </Form>
-          )}
-        </Formik>
-      </div>
-    </>
+                </div>
+                <div className="overflow-x-auto h-96 scrollbar-thin scrollbar-thumb-gray-900 scrollbar-track-gray-100">
+                  <Link to={`/admin/manga/book/${data.slug}`}>
+                    <button className="btn btn-success my-3" type="button">
+                      <FaPlus />
+                      Add new book
+                    </button>
+                  </Link>
+                  <table className="table table-pin-rows">
+                    <thead>
+                      <tr>
+                        <th>Chapter List</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.chapters?.map((book) => (
+                        <tr key={book._id} className="flex items-center ">
+                          <td className="hover:bg-accent text-base flex items-center w-full justify-between">
+                            <div className="flex items-center gap-2">
+                              <TfiBook />
+                              <Link
+                                to={`/manga/${data.slug}/${book.type}/${book.slug}`}
+                              >
+                                {book.title}
+                              </Link>
+                            </div>
+                            <div
+                              onClick={() => onClickDeleteMangaBook(book._id)}
+                            >
+                              <AiFillDelete className="cursor-pointer" />
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </Form>
+        )}
+      </Formik>
+    </div>
   );
 };
 
-export default Manga;
+export default MangaDetailAdmin;

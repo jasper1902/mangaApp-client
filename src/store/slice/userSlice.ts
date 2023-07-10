@@ -1,10 +1,8 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../store";
-import axios, { AxiosError } from "axios";
-import { toast } from "react-toastify";
-import { toastOptions } from "../../services/option";
+import axios from "axios";
 
-interface UserType {
+export interface UserType {
   user: {
     username: string;
     email: string;
@@ -14,13 +12,13 @@ interface UserType {
   };
 }
 
-interface InitialStateType extends UserType {
+export interface UserInitialStateType extends UserType {
   loading: boolean;
   error: string | null;
   loggedIn: boolean;
 }
 
-const initialState: InitialStateType = {
+const initialState: UserInitialStateType = {
   user: {
     username: "",
     email: "",
@@ -64,38 +62,6 @@ const userSlice = createSlice({
     },
   },
 });
-
-interface UserObjType {
-  identifier: string;
-  password: string;
-}
-
-export const userLogin = createAsyncThunk(
-  "user/login",
-  async (userObj: UserObjType, { dispatch, rejectWithValue }) => {
-    try {
-      dispatch(setLoading({ loading: true }));
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/login`,
-        {
-          user: userObj,
-        }
-      );
-      dispatch(updateUser(response.data));
-    } catch (error) {
-      console.log("Error fetching user:", error);
-      const axiosError = error as AxiosError<{ error: string }>;
-      const { response } = axiosError;
-      if (response && response.data) {
-        dispatch(setError({ error: response.data.error }));
-        toast.error(response.data.error, toastOptions);
-      }
-      return rejectWithValue("Failed to login");
-    } finally {
-      dispatch(setLoading({ loading: false }));
-    }
-  }
-);
 
 export const getUser = createAsyncThunk(
   "user/getUser",

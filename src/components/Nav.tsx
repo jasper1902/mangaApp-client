@@ -1,37 +1,33 @@
-import React, { useCallback, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { Field, Formik, Form } from "formik";
-import * as Yup from "yup";
-
-import { updateSearch } from "../store/slice/searchSlice";
-import { useAppDispatch } from "../store/store";
-import Theme from "./Theme";
+import { useCallback, useEffect } from "react";
 import {
+  UserType,
   getUser,
   logoutUser,
-  userLogin,
+  updateUser,
   userSelector,
 } from "../store/slice/userSlice";
-
-interface InitialIdentifierType {
-  identifier: string;
-  password: string;
-}
-
-const initialIdentifierValue: InitialIdentifierType = {
-  identifier: "",
-  password: "",
-};
-
-const validationSchema = Yup.object().shape({
-  identifier: Yup.string().trim().required("Username or Email is required"),
-  password: Yup.string().required("Password is required"),
-});
+import { useAppDispatch } from "../store/store";
+import { useSelector } from "react-redux";
+import { usePostRequest } from "../hook/usePostRequest";
+import { updateSearch } from "../store/slice/searchSlice";
+import { Link } from "react-router-dom";
+import UserDropdown from "./UserDropdown";
+import Theme from "./Theme";
+import LoginForm, { InitialIdentifierType } from "./LoginForm";
 
 const Nav = () => {
   const dispatch = useAppDispatch();
   const userReducer = useSelector(userSelector);
+
+  const [postData, { data: loginData }] = usePostRequest<UserType>(
+    `${import.meta.env.VITE_API_URL}/api/login`
+  );
+
+  useEffect(() => {
+    if (loginData) {
+      dispatch(updateUser(loginData));
+    }
+  }, [loginData, dispatch]);
 
   const onChangeSearchState = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(updateSearch({ title: e.target.value }));
@@ -42,7 +38,7 @@ const Nav = () => {
   };
 
   const onSubmitLogin = async (values: InitialIdentifierType) => {
-    dispatch(userLogin(values));
+    postData({ user: values });
   };
 
   const getUserDispatch = useCallback(() => dispatch(getUser()), [dispatch]);
@@ -51,116 +47,7 @@ const Nav = () => {
     getUserDispatch();
   }, [getUserDispatch]);
 
-  // useEffect(() => {
-  //   dispatch(getUser());
-  // }, [dispatch]);
-
-
-  const renderLoggedInNav = () => (
-    <div className="dropdown dropdown-end">
-      <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
-        <div className="w-10 rounded-full">
-          <img src={userReducer.user.image} alt="User Avatar" />
-        </div>
-      </label>
-      <ul className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
-        <li>
-          <a className="justify-between">
-            Profile
-            <span className="badge">New</span>
-          </a>
-        </li>
-        <li>
-          <a>Settings</a>
-        </li>
-        {userReducer.user.role === "admin" && (
-          <li key="admin-page">
-            <Link to="/dashboard">
-              <p>Admin Page</p>
-            </Link>
-          </li>
-        )}
-        <li>
-          <button onClick={onClickLogout}>Logout</button>
-        </li>
-      </ul>
-    </div>
-  );
-
-  const renderLoginForm = () => (
-    <>
-      <input type="checkbox" id="my_modal_7" className="modal-toggle" />
-      <div className="modal">
-        <div className="modal-box">
-          <h3 className="text-lg font-bold">Login!</h3>
-          <Formik
-            initialValues={initialIdentifierValue}
-            onSubmit={onSubmitLogin}
-            validationSchema={validationSchema}
-          >
-            {({ errors, touched }) => (
-              <Form>
-                <label className="label">
-                  <span className="label-text">Username or Email</span>
-                </label>
-                <Field
-                  type="text"
-                  placeholder="Username or Email"
-                  className="input input-bordered input-primary w-full"
-                  id="identifier"
-                  name="identifier"
-                />
-
-                {errors.identifier && touched.identifier && (
-                  <label className="label">
-                    <span className="label-text-alt text-primary text-base">
-                      {errors.identifier}
-                    </span>
-                  </label>
-                )}
-                <label className="label">
-                  <span className="label-text">Password</span>
-                </label>
-                <Field
-                  type="password"
-                  placeholder="Password"
-                  className="input input-bordered input-primary w-full"
-                  name="password"
-                  id="password"
-                />
-                {errors.password && touched.password && (
-                  <label className="label">
-                    <span className="label-text-alt text-primary text-base">
-                      {errors.password}
-                    </span>
-                  </label>
-                )}
-                <button
-                  className={`btn  ${
-                    userReducer.loading ? "btn-disabled" : "btn-success"
-                  } mt-3`}
-                  type="submit"
-                >
-                  {userReducer.loading ? "Logging in..." : "Login"}
-                </button>
-              </Form>
-            )}
-          </Formik>
-
-          <p>username: admin or admin@admin.com, password: admin1234</p>
-          <p>
-            Already have an account?{" "}
-            <Link to="/register" className="font-bold text-secondary">
-              Login
-            </Link>
-          </p>
-        </div>
-        <label className="modal-backdrop" htmlFor="my_modal_7">
-          Close
-        </label>
-      </div>
-    </>
-  );
+  console.log(userReducer);
 
   return (
     <>
@@ -193,14 +80,19 @@ const Nav = () => {
                   Login
                 </label>
               ) : (
-                renderLoggedInNav()
+                <UserDropdown
+                  userReducer={userReducer}
+                  onClickLogout={onClickLogout}
+                />
               )}
             </div>
           </div>
         </div>
       </div>
 
-      {!userReducer.loggedIn && renderLoginForm()}
+      {!userReducer.loggedIn && (
+        <LoginForm userReducer={userReducer} onSubmitLogin={onSubmitLogin} />
+      )}
     </>
   );
 };
