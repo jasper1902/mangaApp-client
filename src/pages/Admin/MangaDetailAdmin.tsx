@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { AiFillDelete } from "react-icons/ai";
 import { useSelector } from "react-redux";
@@ -6,11 +6,7 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
 import { TfiBook } from "react-icons/tfi";
-import {
-  deleteManga,
-  deleteMangaBook,
-  updateMangaDetail,
-} from "../../services/fetchAPI";
+import { deleteManga, deleteMangaBook } from "../../services/fetchAPI";
 import { MangaTypeList } from "../../types/manga.type";
 import { userSelector } from "../../store/slice/userSlice";
 import DescriptionAdmin from "../../components/Admin/DescriptionAdmin";
@@ -19,13 +15,22 @@ import { FaPlus } from "react-icons/fa";
 import { Field, Form, Formik, FormikHelpers } from "formik";
 import { toastOptions } from "../../services/option";
 import { useFetchData } from "../../hook/useFetchData";
+import { usePutRequest } from "../../hook/usePutRequest";
 
 const Manga = () => {
   const { slug } = useParams();
-  const [onProgress, setOnProgress] = useState<number | null>(null);
   const navigate = useNavigate();
-
   const userReducer = useSelector(userSelector);
+
+  const { data } = useFetchData<MangaTypeList>(
+    `${import.meta.env.VITE_API_URL}/api/manga/${slug}`
+  );
+
+  const [putData, { statusText, status, progress, hasError, errorMessage}] =
+    usePutRequest<MangaTypeList>(
+      `${import.meta.env.VITE_API_URL}/api/manga/update/${data?._id}`,
+      userReducer.user.token
+    );
 
   const fileInputRef = useRef(null);
 
@@ -37,14 +42,21 @@ const Manga = () => {
     setFieldValue("image", file || null);
   };
 
-  const { data } = useFetchData<MangaTypeList>(
-    `${import.meta.env.VITE_API_URL}/api/manga/${slug}`
-  );
-
   const dateString = (date: string): string => {
     const dateObject = new Date(date);
     return dateObject.toLocaleString();
   };
+
+  useEffect(() => {
+    if (statusText === "OK") {
+      toast.success("Update manga successfully", toastOptions);
+      navigate("/dashboard");
+    }
+
+    if (hasError) {
+      toast.error(errorMessage, toastOptions);
+    }
+  }, [errorMessage, hasError, navigate, status, statusText]);
 
   const onClickDeleteMangaBook = async (bookId: string) => {
     const showConfirmationDialog = async () => {
@@ -170,7 +182,7 @@ const Manga = () => {
                 text: "You won't be able to revert this!",
                 icon: "warning",
                 showCancelButton: true,
-                confirmButtonText: "Yes, delete it!",
+                confirmButtonText: "Yes, update it!",
                 cancelButtonText: "No, cancel!",
                 reverseButtons: true,
               });
@@ -181,18 +193,25 @@ const Manga = () => {
             const result = await showConfirmationDialog();
 
             if (result.isConfirmed) {
-              const response = await updateMangaDetail(
-                values,
-                userReducer.user.token,
-                data._id,
-                setOnProgress
-              );
-              if (response?.status !== 200) {
-                toast.error("Failed to update manga book", toastOptions);
-                return;
+              const formData = new FormData();
+
+              const { title, description, slug, image, tagList } = values;
+
+              formData.append("title", title);
+              formData.append("description", description || "");
+              formData.append("slug", slug);
+
+              if (image) {
+                formData.append("image", image);
               }
-              toast.success(response.data.message, toastOptions);
-              navigate("/dashboard");
+
+              if (tagList?.length) {
+                tagList.forEach((tag, index) => {
+                  formData.append(`tagList[${index}]`, tag);
+                });
+              }
+
+              putData(formData);
             } else if (result.dismiss === Swal.DismissReason.cancel) {
               Swal.fire("Cancelled", "Your imaginary file is safe :)", "error");
             }
@@ -200,13 +219,13 @@ const Manga = () => {
         >
           {({ values, setFieldValue }) => (
             <Form>
-              {onProgress ? (
+              {progress ? (
                 <div className="flex items-center justify-center">
                   <div
                     className="radial-progress bg-primary text-primary-content border-4 border-primary mt-5 h-52 w-52"
-                    style={{ "--value": onProgress } as React.CSSProperties}
+                    style={{ "--value": progress } as React.CSSProperties}
                   >
-                    {onProgress}%
+                    {progress}%
                   </div>
                 </div>
               ) : (

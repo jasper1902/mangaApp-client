@@ -1,7 +1,5 @@
-import axios, { AxiosProgressEvent } from "axios";
+import axios from "axios";
 
-import { CreateMangaBookType } from "../pages/Admin/BookCreate";
-import { MangaTypeList } from "../types/manga.type";
 const apiBaseUrl = import.meta.env.VITE_API_URL;
 
 export const deleteManga = async (id: string, token: string) => {
@@ -9,50 +7,6 @@ export const deleteManga = async (id: string, token: string) => {
     headers: { Authorization: `token ${token}` },
   });
   return response;
-};
-
-export const createMangaBook = async (
-  token: string,
-  values: CreateMangaBookType,
-  mangaId: string,
-  setProgress: (progress: number) => void
-) => {
-  if (!values.title) {
-    return;
-  }
-  const formData = new FormData();
-  formData.append("type", String(values.type));
-  formData.append("slug", values.slug);
-  formData.append("mangaID", mangaId);
-  formData.append("title", values.title);
-  if (values.image) {
-    for (let i = 0; i < values.image.length; i++) {
-      formData.append("image", values.image[i]);
-    }
-  }
-  const response = await axios.post(
-    `${apiBaseUrl}/api/manga/create/book`,
-    formData,
-    {
-      headers: { Authorization: `token ${token}` },
-      onUploadProgress: (progressEvent: AxiosProgressEvent) => {
-        if (progressEvent.total !== undefined) {
-          const progress = Math.round(
-            (progressEvent.loaded / progressEvent.total) * 100
-          );
-          setProgress(progress);
-        }
-      },
-    }
-  );
-  return response;
-};
-
-export const getMangaById = async (mangaId: string, token: string) => {
-  const response = await axios.get(`${apiBaseUrl}/api/manga/id/${mangaId}`, {
-    headers: { Authorization: `token ${token}` },
-  });
-  return response.data;
 };
 
 export const deleteMangaBook = async (
@@ -64,45 +18,5 @@ export const deleteMangaBook = async (
     `${apiBaseUrl}/api/manga/book/${mangaId}/${bookId}`,
     { headers: { Authorization: `token ${token}` } }
   );
-  return response;
-};
-export const updateMangaDetail = async (
-  values: MangaTypeList,
-  token: string,
-  mangaId: string,
-  setProgress: (progress: number) => void
-) => {
-  const formData = new FormData();
-
-  const { title, description, slug, image, tagList } = values;
-
-  formData.append("title", title);
-  formData.append("description", description || "");
-  formData.append("slug", slug);
-
-  if (image) {
-    formData.append("image", image);
-  }
-
-  if (tagList?.length) {
-    tagList.forEach((tag, index) => {
-      formData.append(`tagList[${index}]`, tag);
-    });
-  }
-
-  const url = `${import.meta.env.VITE_API_URL}/api/manga/update/${mangaId}`;
-
-  const response = await axios.put(url, formData, {
-    headers: { Authorization: `token ${token}` },
-    onUploadProgress: (progressEvent: AxiosProgressEvent) => {
-      if (progressEvent.total !== undefined) {
-        const progress = Math.round(
-          (progressEvent.loaded / progressEvent.total) * 100
-        );
-        setProgress(progress);
-      }
-    },
-  });
-
   return response;
 };
