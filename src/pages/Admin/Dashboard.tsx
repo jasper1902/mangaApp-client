@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { MangaTypeList } from "../../types/manga.type";
 import { useSelector } from "react-redux";
 import { searchSelector } from "../../store/slice/searchSlice";
@@ -6,6 +5,7 @@ import { Link } from "react-router-dom";
 
 import { FaPlus } from "react-icons/fa";
 import { useFetchData } from "../../hook/useFetchData";
+import { useFilteredMangaList } from "../../hook/useSearch";
 
 const Dashboard = () => {
   const searchReducer = useSelector(searchSelector);
@@ -14,11 +14,7 @@ const Dashboard = () => {
     `${import.meta.env.VITE_API_URL}/api/manga`
   );
 
-  const filteredMangaList = useMemo(() => {
-    return data?.filter((manga) =>
-      manga.title.toLowerCase().includes(searchReducer.title.toLowerCase())
-    );
-  }, [data, searchReducer]);
+  const filteredMangaList = useFilteredMangaList(data || [], searchReducer);
   return (
     <div className="container mx-auto lg:max-w-screen-xl max-w-screen-sm mt-3">
       <Link to="/admin/manga/create" className="btn btn-success">

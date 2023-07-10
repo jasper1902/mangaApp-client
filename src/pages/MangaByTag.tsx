@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import Breadcrumb from "../components/Breadcrumb";
@@ -9,6 +9,7 @@ import { useAppDispatch } from "../store/store";
 import { useFetchData } from "../hook/useFetchData";
 import { useSelector } from "react-redux";
 import { searchSelector } from "../store/slice/searchSlice";
+import { useFilteredMangaList } from "../hook/useSearch";
 
 const MangaByTag = () => {
   const dispatch = useAppDispatch();
@@ -23,11 +24,7 @@ const MangaByTag = () => {
     category === "manga" ? setMangaCategory(true) : setMangaCategory(false);
   }, [category, dispatch]);
 
-  const filteredMangaList = useMemo(() => {
-    return data?.filter((manga) =>
-      manga.title.toLowerCase().includes(searchReducer.title.toLowerCase())
-    );
-  }, [data, searchReducer]);
+  const filteredMangaList = useFilteredMangaList(data || [], searchReducer);
 
   return (
     <>

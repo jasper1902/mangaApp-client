@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import Breadcrumb from "../components/Breadcrumb";
 import { MangaTypeList } from "../types/manga.type";
@@ -6,6 +5,7 @@ import { useSelector } from "react-redux";
 
 import { searchSelector } from "../store/slice/searchSlice";
 import { useFetchData } from "../hook/useFetchData";
+import { useFilteredMangaList } from "../hook/useSearch";
 
 const Mangas = () => {
   const searchReducer = useSelector(searchSelector);
@@ -13,12 +13,7 @@ const Mangas = () => {
   const { data } = useFetchData<MangaTypeList[]>(
     `${import.meta.env.VITE_API_URL}/api/manga`
   );
-
-  const filteredMangaList = useMemo(() => {
-    return data?.filter((manga) =>
-      manga.title.toLowerCase().includes(searchReducer.title.toLowerCase())
-    );
-  }, [data, searchReducer]);
+  const filteredMangaList = useFilteredMangaList(data || [], searchReducer);
 
   return (
     <div className="container mx-auto lg:max-w-screen-xl max-w-screen-sm mt-3">
