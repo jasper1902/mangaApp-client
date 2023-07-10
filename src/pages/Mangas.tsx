@@ -1,38 +1,30 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import Breadcrumb from "../components/Breadcrumb";
-import {
-  fetchMangaList,
-  mangaListSelector,
-} from "../store/slice/mangaListSlice";
+import { MangaTypeList } from "../types/manga.type";
 import { useSelector } from "react-redux";
-import { useAppDispatch } from "../store/store";
+
 import { searchSelector } from "../store/slice/searchSlice";
+import { useFetchData } from "../hook/useFetchData";
 
 const Mangas = () => {
-  const mangaListReducer = useSelector(mangaListSelector);
   const searchReducer = useSelector(searchSelector);
-  const dispatch = useAppDispatch();
 
-  useEffect(() => {
-    const fetchMangaData = async () => {
-      dispatch(fetchMangaList());
-    };
-
-    fetchMangaData();
-  }, [dispatch]);
+  const { data } = useFetchData<MangaTypeList[]>(
+    `${import.meta.env.VITE_API_URL}/api/manga`
+  );
 
   const filteredMangaList = useMemo(() => {
-    return mangaListReducer.filter((manga) =>
+    return data?.filter((manga) =>
       manga.title.toLowerCase().includes(searchReducer.title.toLowerCase())
     );
-  }, [mangaListReducer, searchReducer]);
+  }, [data, searchReducer]);
 
   return (
     <div className="container mx-auto lg:max-w-screen-xl max-w-screen-sm mt-3">
       <Breadcrumb />
       <div className="grid lg:grid-cols-4 md:grid-cols-3 grid-cols-2 gap-4 mt-5">
-        {filteredMangaList.map((manga, index) => (
+        {filteredMangaList?.map((manga, index) => (
           <div
             className="card bg-base-100 shadow-xl hover:scale-105 hover:transition-all duration-500"
             key={index}

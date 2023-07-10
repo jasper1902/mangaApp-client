@@ -1,9 +1,12 @@
 import { Field, Form, Formik, FieldArray, FormikHelpers } from "formik";
 import { useSelector } from "react-redux";
 import { userSelector } from "../../store/slice/userSlice";
-import { useRef, useState } from "react";
-import { createManga } from "../../services/fetchAPI";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { usePostRequest } from "../../hook/usePostRequest";
+import { MangaTypeList } from "../../types/manga.type";
+import { toastOptions } from "../../services/option";
+import { toast } from "react-toastify";
 
 export interface CreateMangaType {
   title: string;
@@ -22,10 +25,13 @@ const initialValues: CreateMangaType = {
 };
 
 const MangaCreate = () => {
-  const [onProgress, setOnProgress] = useState<number | null>(null);
-  onProgress;
   const userReducer = useSelector(userSelector);
   const fileInputRef = useRef(null);
+
+  const [postData, { progress, statusText }] = usePostRequest<MangaTypeList>(
+    `${import.meta.env.VITE_API_URL}/api/manga/create`,
+    userReducer.user.token
+  );
 
   const navigate = useNavigate();
 
@@ -37,34 +43,42 @@ const MangaCreate = () => {
     setFieldValue("image", file || null);
   };
 
+  useEffect(() => {
+    if (statusText === "OK") {
+      toast.success("Create manga book successfully", toastOptions);
+      navigate("/dashboard");
+    }
+  }, [statusText, navigate]);
+
   return (
     <div className="container mx-auto lg:max-w-screen-xl max-w-screen-sm mt-3">
       <Formik
         initialValues={initialValues}
-        onSubmit={async (values: typeof initialValues, { resetForm }) => {
-          const response = await createManga(
-            values,
-            userReducer.user.token,
-            setOnProgress
-          );
-          if (response.data.manga) {
-            resetForm();
+        onSubmit={async (values: typeof initialValues) => {
+          const formData = new FormData();
+          formData.append("title", values.title);
+          formData.append("description", values.description);
+          formData.append("slug", values.slug);
+          if (values.image) {
+            formData.append("image", values.image);
           }
-          if (response.status === 200) {
-            navigate("/dashboard");
-          }
+
+          values.tagList.forEach((tag, index) => {
+            formData.append(`tagList[${index}]`, tag);
+          });
+          postData(formData);
         }}
       >
         {({ values, setFieldValue }) => (
           <Form>
             <div className="flex flex-col">
-              {onProgress ? (
+              {progress ? (
                 <div className="flex items-center justify-center">
                   <div
                     className="radial-progress bg-primary text-primary-content border-4 border-primary mt-5 h-52 w-52"
-                    style={{ "--value": onProgress } as React.CSSProperties}
+                    style={{ "--value": progress } as React.CSSProperties}
                   >
-                    {onProgress}%
+                    {progress}%
                   </div>
                 </div>
               ) : (

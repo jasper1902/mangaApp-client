@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { AiFillDelete } from "react-icons/ai";
 import { useSelector } from "react-redux";
@@ -9,33 +9,20 @@ import { TfiBook } from "react-icons/tfi";
 import {
   deleteManga,
   deleteMangaBook,
-  fetchManga,
-  fetchUsername,
   updateMangaDetail,
 } from "../../services/fetchAPI";
-import { MangaTypeList } from "../../store/slice/mangaListSlice";
+import { MangaTypeList } from "../../types/manga.type";
 import { userSelector } from "../../store/slice/userSlice";
 import DescriptionAdmin from "../../components/Admin/DescriptionAdmin";
 
 import { FaPlus } from "react-icons/fa";
 import { Field, Form, Formik, FormikHelpers } from "formik";
 import { toastOptions } from "../../services/option";
-
-interface BookType {
-  type: "book" | "chapter" ;
-  title: string;
-  _id: string;
-  book: number;
-  slug: string;
-  images: string[];
-}
+import { useFetchData } from "../../hook/useFetchData";
 
 const Manga = () => {
   const { slug } = useParams();
-  const [manga, setManga] = useState<MangaTypeList | null>(null);
-  const [books, setBooks] = useState<BookType[]>([]);
   const [onProgress, setOnProgress] = useState<number | null>(null);
-  const [uploader, setUploader] = useState("");
   const navigate = useNavigate();
 
   const userReducer = useSelector(userSelector);
@@ -50,55 +37,14 @@ const Manga = () => {
     setFieldValue("image", file || null);
   };
 
-  useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
-
-  const fetchData = async () => {
-    if (!slug) return;
-
-    const data = await fetchManga(slug);
-    const [mangaData, bookData] = await Promise.all([
-      data.manga,
-      loadBook(data.manga.books),
-    ]);
-    setManga(mangaData);
-    setBooks(bookData);
-  };
-
-  const loadBook = async (data: string[]) => {
-    const books = await Promise.all(
-      data.map(async (bookId) => {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/manga/book/${bookId}`
-        );
-        const bookData = await response.json();
-        return bookData;
-      })
-    );
-    return books;
-  };
+  const { data } = useFetchData<MangaTypeList>(
+    `${import.meta.env.VITE_API_URL}/api/manga/${slug}`
+  );
 
   const dateString = (date: string): string => {
     const dateObject = new Date(date);
     return dateObject.toLocaleString();
   };
-
-  const getUsernameUploader = async () => {
-    if (!manga) {
-      return;
-    }
-    if (!manga.uploader) return;
-
-    const { user } = await fetchUsername(manga.uploader);
-    setUploader(user.username);
-  };
-
-  useEffect(() => {
-    getUsernameUploader();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [manga?.uploader]);
 
   const onClickDeleteMangaBook = async (bookId: string) => {
     const showConfirmationDialog = async () => {
@@ -124,13 +70,13 @@ const Manga = () => {
     };
 
     const result = await showConfirmationDialog();
-    if (!manga) {
+    if (!data) {
       return;
     }
 
     if (result.isConfirmed) {
       const response = await deleteMangaBook(
-        manga._id,
+        data._id,
         bookId,
         userReducer.user.token
       );
@@ -182,12 +128,12 @@ const Manga = () => {
 
     const result = await showConfirmationDialog();
 
-    if (!manga) {
+    if (!data) {
       return;
     }
 
     if (result.isConfirmed) {
-      const response = await deleteManga(manga._id, userReducer.user.token);
+      const response = await deleteManga(data._id, userReducer.user.token);
 
       if (response.status === 200) {
         showSuccessToast(response.data.message);
@@ -198,7 +144,7 @@ const Manga = () => {
     }
   };
 
-  if (!manga) {
+  if (!data) {
     return null;
   }
 
@@ -207,9 +153,9 @@ const Manga = () => {
       <div className="container max-w-screen-lg mx-auto">
         <Formik
           initialValues={{
-            ...manga,
+            ...data,
           }}
-          onSubmit={async (values: typeof manga) => {
+          onSubmit={async (values: typeof data) => {
             const showConfirmationDialog = async () => {
               const swalWithBootstrapButtons = Swal.mixin({
                 customClass: {
@@ -238,7 +184,7 @@ const Manga = () => {
               const response = await updateMangaDetail(
                 values,
                 userReducer.user.token,
-                manga._id,
+                data._id,
                 setOnProgress
               );
               if (response?.status !== 200) {
@@ -265,13 +211,13 @@ const Manga = () => {
                 </div>
               ) : (
                 <>
-                  {manga && <DescriptionAdmin manga={manga} values={values} />}
+                  {data && <DescriptionAdmin manga={data} values={values} />}
                   <div className="grid grid-cols-12 gap-4">
                     <div className="col-span-4">
                       <div>
                         <img
                           src={`${import.meta.env.VITE_IMG_URL}/src/assets${
-                            manga.image
+                            data.image
                           }`}
                           alt=""
                           draggable={false}
@@ -292,10 +238,9 @@ const Manga = () => {
                       </div>
 
                       <div>
-                        <p>id: {manga._id}</p>
-                        <p>uploader: {uploader}</p>
-                        <p>createdAt: {dateString(manga.createdAt)}</p>
-                        <p>updatedAt: {dateString(manga.updatedAt)}</p>
+                        <p>uploader: {data.uploader}</p>
+                        <p>createdAt: {dateString(data.createdAt)}</p>
+                        <p>updatedAt: {dateString(data.updatedAt)}</p>
                       </div>
 
                       <div className="flex items-center justify-around mt-5">
@@ -343,7 +288,7 @@ const Manga = () => {
                         </div>
                       </div>
                       <div className="overflow-x-auto h-96 scrollbar-thin scrollbar-thumb-gray-900 scrollbar-track-gray-100">
-                        <Link to={`/admin/manga/book/${manga._id}`}>
+                        <Link to={`/admin/manga/book/${data.slug}`}>
                           <button
                             className="btn btn-success my-3"
                             type="button"
@@ -359,13 +304,13 @@ const Manga = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {books?.map((book) => (
+                            {data.chapters?.map((book) => (
                               <tr key={book._id} className="flex items-center ">
                                 <td className="hover:bg-accent text-base flex items-center w-full justify-between">
                                   <div className="flex items-center gap-2">
                                     <TfiBook />
                                     <Link
-                                      to={`/manga/${manga.slug}/${book.type}/${book.slug}`}
+                                      to={`/manga/${data.slug}/${book.type}/${book.slug}`}
                                     >
                                       {book.title}
                                     </Link>

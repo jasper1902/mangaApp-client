@@ -1,0 +1,60 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useEffect, useState } from "react";
+import axios, { AxiosResponse, CancelTokenSource } from "axios";
+
+type ApiResponse<T> = {
+  data: T | null;
+  hasError: boolean;
+  isLoading: boolean;
+  errorMessage: string;
+  status: number | null;
+  statusText: string | null;
+};
+
+export const useFetchData = <T>(url: string): ApiResponse<T> => {
+  const [data, setData] = useState<T | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [status, setStatus] = useState<number | null>(null);
+  const [statusText, setStatusText] = useState<string | null>(null);
+
+  useEffect(() => {
+    let source: CancelTokenSource;
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      setHasError(false);
+      setErrorMessage("");
+
+      try {
+        source = axios.CancelToken.source();
+        const response: AxiosResponse<T> = await axios.get(url, {
+          cancelToken: source.token,
+        });
+        if (response.statusText !== "OK") {
+          throw new Error("Server response was not ok");
+        }
+        setData(response.data);
+        setStatus(response.status);
+        setStatusText(response.statusText);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        setHasError(true);
+        setErrorMessage(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      if (source) {
+        source.cancel("Request canceled");
+      }
+    };
+  }, [url]);
+
+  return { data, isLoading, hasError, errorMessage, status, statusText };
+};

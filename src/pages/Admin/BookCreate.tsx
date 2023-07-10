@@ -1,13 +1,13 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { Field, Form, Formik, FormikHelpers } from "formik";
-import { createMangaBook, getMangaById } from "../../services/fetchAPI";
 import { userSelector } from "../../store/slice/userSlice";
-
 import { useNavigate, useParams } from "react-router-dom";
-import { MangaTypeList } from "../../store/slice/mangaListSlice";
+import { MangaTypeList } from "../../types/manga.type";
 import { toastOptions } from "../../services/option";
 import { toast } from "react-toastify";
+import { useFetchData } from "../../hook/useFetchData";
+import { usePostRequest } from "../../hook/usePostRequest";
 
 export interface CreateMangaBookType {
   slug: string;
@@ -28,10 +28,8 @@ const initialValues: CreateMangaBookType = {
 const BookCreate = () => {
   const userReducer = useSelector(userSelector);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [manga, setManga] = useState<MangaTypeList | null>(null);
-  const [onProgress, setOnProgress] = useState<number | null>();
 
-  const { mangaId }: { mangaId?: string } = useParams();
+  const { slug } = useParams();
   const navigate = useNavigate();
 
   const handleFileChange = (
@@ -44,17 +42,21 @@ const BookCreate = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchManga = async () => {
-      if (!mangaId) {
-        return;
-      }
-      const manga = await getMangaById(mangaId, userReducer.user.token);
-      setManga(manga.manga);
-    };
+  const { data: manga } = useFetchData<MangaTypeList>(
+    `${import.meta.env.VITE_API_URL}/api/manga/${slug}`
+  );
 
-    fetchManga();
-  }, [mangaId, userReducer.user.token]);
+  const [postData, { progress, statusText }] = usePostRequest<MangaTypeList>(
+    `${import.meta.env.VITE_API_URL}/api/manga/create/book`,
+    userReducer.user.token
+  );
+
+  useEffect(() => {
+    if (statusText === "OK") {
+      toast.success("Create manga book successfully", toastOptions);
+      navigate("/dashboard");
+    }
+  }, [statusText, navigate]);
 
   if (!manga) {
     return null;
@@ -63,28 +65,24 @@ const BookCreate = () => {
   return (
     <div className="container mx-auto lg:max-w-screen-xl max-w-screen-sm mt-3">
       <Formik
-        key={mangaId}
+        key={slug}
         initialValues={{
           ...initialValues,
           title: manga.title || "",
+          slug: manga.slug || "",
         }}
-        onSubmit={async (
-          values: CreateMangaBookType,
-          { resetForm }
-        ): Promise<void> => {
-          const response = await createMangaBook(
-            userReducer.user.token,
-            values,
-            mangaId as string,
-            setOnProgress
-          );
-          if (response?.status !== 200) {
-            toast.error("Failed to create manga book", toastOptions);
-            return;
+        onSubmit={async (values: CreateMangaBookType): Promise<void> => {
+          const formData = new FormData();
+          formData.append("type", String(values.type));
+          formData.append("slug", values.slug);
+          formData.append("mangaSlug", manga.slug);
+          formData.append("title", values.title as string);
+          if (values.image) {
+            for (let i = 0; i < values.image.length; i++) {
+              formData.append("image", values.image[i]);
+            }
           }
-          toast.success(response.data.message, toastOptions);
-          resetForm();
-          navigate("/dashboard");
+          postData(formData);
         }}
       >
         {({ setFieldValue }) => (
@@ -102,13 +100,13 @@ const BookCreate = () => {
                   </div>
                 </div>
                 <div className="col-span-6">
-                  {onProgress ? (
+                  {progress ? (
                     <div className="flex items-center justify-center">
                       <div
                         className="radial-progress bg-primary text-primary-content border-4 border-primary mt-5 h-52 w-52"
-                        style={{ "--value": onProgress } as React.CSSProperties}
+                        style={{ "--value": progress } as React.CSSProperties}
                       >
-                        {onProgress}%
+                        {progress}%
                       </div>
                     </div>
                   ) : (

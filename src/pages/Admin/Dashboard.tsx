@@ -1,30 +1,24 @@
-import { useEffect, useMemo } from "react";
-import {
-  fetchMangaList,
-  mangaListSelector,
-} from "../../store/slice/mangaListSlice";
+import { useMemo } from "react";
+import { MangaTypeList } from "../../types/manga.type";
 import { useSelector } from "react-redux";
 import { searchSelector } from "../../store/slice/searchSlice";
-import { useAppDispatch } from "../../store/store";
 import { Link } from "react-router-dom";
 
 import { FaPlus } from "react-icons/fa";
+import { useFetchData } from "../../hook/useFetchData";
 
 const Dashboard = () => {
-  const mangaListReducer = useSelector(mangaListSelector);
   const searchReducer = useSelector(searchSelector);
-  const dispatch = useAppDispatch();
 
-  useEffect(() => {
-    dispatch(fetchMangaList());
-  }, [dispatch]);
+  const { data } = useFetchData<MangaTypeList[]>(
+    `${import.meta.env.VITE_API_URL}/api/manga`
+  );
 
   const filteredMangaList = useMemo(() => {
-    return mangaListReducer.filter((manga) =>
+    return data?.filter((manga) =>
       manga.title.toLowerCase().includes(searchReducer.title.toLowerCase())
     );
-  }, [mangaListReducer, searchReducer]);
-
+  }, [data, searchReducer]);
   return (
     <div className="container mx-auto lg:max-w-screen-xl max-w-screen-sm mt-3">
       <Link to="/admin/manga/create" className="btn btn-success">
@@ -33,7 +27,7 @@ const Dashboard = () => {
       </Link>
 
       <div className="grid lg:grid-cols-4 md:grid-cols-3 grid-cols-2 gap-4 mt-5">
-        {filteredMangaList.map((manga) => (
+        {filteredMangaList?.map((manga) => (
           <div className="card bg-base-100 shadow-xl " key={manga.slug}>
             <Link to={`/admin/manga/${manga.slug}`}>
               {" "}
@@ -62,7 +56,6 @@ const Dashboard = () => {
                   </span>
                 ))}
 
-                <p>{manga.books?.length} เล่ม</p>
                 <p>{manga.chapters?.length} ตอน</p>
 
                 <button className="btn btn-error hover:btn-secondary">

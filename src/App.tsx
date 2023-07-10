@@ -83,7 +83,7 @@ const App = () => {
 
           {userReducer.user.role && (
             <Route
-              path="/admin/manga/book/:mangaId"
+              path="/admin/manga/book/:slug"
               element={
                 <PrivateRoute
                   element={<BookCreate />}

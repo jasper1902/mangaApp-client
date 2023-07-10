@@ -3,27 +3,20 @@ import { Link, useParams } from "react-router-dom";
 
 import Breadcrumb from "../components/Breadcrumb";
 import Mangas from "./Mangas";
-import {
-  fetchMangaList,
-  mangaListSelector,
-} from "../store/slice/mangaListSlice";
+import { MangaTypeList } from "../types/manga.type";
 import { useAppDispatch } from "../store/store";
-import { useSelector } from "react-redux";
+
+import { useFetchData } from "../hook/useFetchData";
 
 const MangaByTag = () => {
   const dispatch = useAppDispatch();
-  const mangaListReducer = useSelector(mangaListSelector);
   const [mangaCategory, setMangaCategory] = useState<boolean>();
   const { category } = useParams();
-
+  const { data } = useFetchData<MangaTypeList[]>(
+    `${import.meta.env.VITE_API_URL}/api/manga/tags/${category}`
+  );
   useEffect(() => {
     category === "manga" ? setMangaCategory(true) : setMangaCategory(false);
-    const fetchData = async () => {
-      if (category) {
-        dispatch(fetchMangaList());
-      }
-    };
-    fetchData();
   }, [category, dispatch]);
 
   return (
@@ -32,7 +25,7 @@ const MangaByTag = () => {
         <div className="container mx-auto max-w-screen-xl mt-3">
           <Breadcrumb />
           <div className="grid grid-cols-4 gap-4 mt-5">
-            {mangaListReducer.map((manga, index) => (
+            {data?.map((manga, index) => (
               <div
                 className="card bg-base-100 shadow-xl hover:scale-105 hover:transition-all duration-500"
                 key={index}
