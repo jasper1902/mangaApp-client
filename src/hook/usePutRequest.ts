@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useCallback } from "react";
-import axios, { AxiosProgressEvent, AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosProgressEvent, AxiosResponse } from "axios";
 
 type ApiResponse<T> = {
   putData: (requestData: ApiPutRequestData) => void;
@@ -11,6 +11,7 @@ type ApiResponse<T> = {
   status: number | null;
   statusText: string | null;
   progress: number | null;
+  error: AxiosError | null;
 };
 
 type ApiPutRequestData = {
@@ -28,6 +29,7 @@ export const usePutRequest = <T>(
   const [status, setStatus] = useState<number | null>(null);
   const [statusText, setStatusText] = useState<string | null>(null);
   const [progress, setProgress] = useState<number | null>(null);
+  const [error, setError] = useState<AxiosError | null>(null);
 
   const putData = useCallback(
     async (requestData: ApiPutRequestData): Promise<void> => {
@@ -35,6 +37,7 @@ export const usePutRequest = <T>(
         setIsLoading(true);
         setHasError(false);
         setErrorMessage("");
+        setError(null);
         const response: AxiosResponse<T> = await axios.put(url, requestData, {
           headers: { Authorization: `token ${token}` },
           onUploadProgress: (progressEvent: AxiosProgressEvent) => {
@@ -55,9 +58,15 @@ export const usePutRequest = <T>(
         setData(response.data);
         setStatus(response.status);
         setStatusText(response.statusText);
+        setProgress(null);
       } catch (error: any) {
-        setHasError(true);
-        setErrorMessage(error.message);
+        if (axios.isAxiosError(error)) {
+          setError(error);
+          setStatus(error.response?.status || null);
+          setStatusText(error.response?.statusText || null);
+          setHasError(true);
+          setErrorMessage(error.response?.data.message || "");
+        }
       } finally {
         setProgress(null);
         setIsLoading(false);
@@ -77,6 +86,7 @@ export const usePutRequest = <T>(
       status,
       statusText,
       progress,
+      error,
     },
   ];
 };

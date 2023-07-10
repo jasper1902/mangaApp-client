@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useCallback } from "react";
-import axios, { AxiosProgressEvent, AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosProgressEvent, AxiosResponse } from "axios";
 
 type ApiResponse<T> = {
   postData: (requestData: ApiPostRequestData) => void;
@@ -11,6 +11,7 @@ type ApiResponse<T> = {
   status: number | null;
   statusText: string | null;
   progress: number | null;
+  error: AxiosError | null;
 };
 
 type ApiPostRequestData = {
@@ -28,6 +29,7 @@ export const usePostRequest = <T>(
   const [status, setStatus] = useState<number | null>(null);
   const [statusText, setStatusText] = useState<string | null>(null);
   const [progress, setProgress] = useState<number | null>(null);
+  const [error, setError] = useState<AxiosError | null>(null);
 
   const postData = useCallback(
     async (requestData: ApiPostRequestData): Promise<void> => {
@@ -35,6 +37,7 @@ export const usePostRequest = <T>(
         setIsLoading(true);
         setHasError(false);
         setErrorMessage("");
+        setError(null);
         const response: AxiosResponse<T> = await axios.post(url, requestData, {
           headers: { Authorization: `token ${token}` },
           onUploadProgress: (progressEvent: AxiosProgressEvent) => {
@@ -56,16 +59,21 @@ export const usePostRequest = <T>(
         setStatus(response.status);
         setStatusText(response.statusText);
         setProgress(null);
-      } catch (error: any) {
-        setHasError(true);
-        setErrorMessage(error.message);
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          setError(error);
+          setStatus(error.response?.status || null);
+          setStatusText(error.response?.statusText || null);
+          setHasError(true);
+          setErrorMessage(error.response?.data.message || "");
+        }
       } finally {
+        setProgress(null);
         setIsLoading(false);
       }
     },
     [token, url]
   );
-
   return [
     postData,
     {
@@ -77,6 +85,7 @@ export const usePostRequest = <T>(
       status,
       statusText,
       progress,
+      error,
     },
   ];
 };

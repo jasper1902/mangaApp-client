@@ -46,17 +46,24 @@ const BookCreate = () => {
     `${import.meta.env.VITE_API_URL}/api/manga/${slug}`
   );
 
-  const [postData, { progress, statusText }] = usePostRequest<MangaTypeList>(
-    `${import.meta.env.VITE_API_URL}/api/manga/create/book`,
-    userReducer.user.token
-  );
+  const [postData, { progress, statusText, hasError, errorMessage }] =
+    usePostRequest<MangaTypeList>(
+      `${import.meta.env.VITE_API_URL}/api/manga/create/book`,
+      userReducer.user.token
+    );
 
   useEffect(() => {
     if (statusText === "OK") {
       toast.success("Create manga book successfully", toastOptions);
       navigate("/dashboard");
     }
-  }, [statusText, navigate]);
+
+    if (hasError) {
+      toast.error(errorMessage, toastOptions);
+      navigate(`/dashboard`);
+    }
+    
+  }, [statusText, navigate, hasError, errorMessage, slug]);
 
   if (!manga) {
     return null;

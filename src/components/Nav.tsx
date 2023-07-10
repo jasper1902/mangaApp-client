@@ -14,14 +14,21 @@ import { Link } from "react-router-dom";
 import UserDropdown from "./UserDropdown";
 import Theme from "./Theme";
 import LoginForm, { InitialIdentifierType } from "./LoginForm";
+import { toast } from "react-toastify";
+import { toastOptions } from "../services/option";
 
 const Nav = () => {
   const dispatch = useAppDispatch();
   const userReducer = useSelector(userSelector);
 
-  const [postData, { data: loginData }] = usePostRequest<UserType>(
-    `${import.meta.env.VITE_API_URL}/api/login`
-  );
+  const [postData, { data: loginData, errorMessage, hasError }] =
+    usePostRequest<UserType>(`${import.meta.env.VITE_API_URL}/api/login`);
+
+  useEffect(() => {
+    if (hasError) {
+      toast.error(errorMessage, toastOptions);
+    }
+  }, [errorMessage, hasError]);
 
   useEffect(() => {
     if (loginData) {
@@ -46,8 +53,6 @@ const Nav = () => {
   useEffect(() => {
     getUserDispatch();
   }, [getUserDispatch]);
-
-  console.log(userReducer);
 
   return (
     <>

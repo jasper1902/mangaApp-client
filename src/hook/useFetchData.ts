@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import axios, { AxiosResponse, CancelTokenSource } from "axios";
+import axios, { AxiosError, AxiosResponse, CancelTokenSource } from "axios";
 
 type ApiResponse<T> = {
   data: T | null;
@@ -9,6 +9,7 @@ type ApiResponse<T> = {
   errorMessage: string;
   status: number | null;
   statusText: string | null;
+  error: AxiosError | null;
 };
 
 export const useFetchData = <T>(
@@ -21,6 +22,7 @@ export const useFetchData = <T>(
   const [errorMessage, setErrorMessage] = useState("");
   const [status, setStatus] = useState<number | null>(null);
   const [statusText, setStatusText] = useState<string | null>(null);
+  const [error, setError] = useState<AxiosError | null>(null);
 
   useEffect(() => {
     let source: CancelTokenSource;
@@ -43,9 +45,14 @@ export const useFetchData = <T>(
         setStatus(response.status);
         setStatusText(response.statusText);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        setHasError(true);
-        setErrorMessage(error.message);
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          setError(error);
+          setStatus(error.response?.status || null);
+          setStatusText(error.response?.statusText || null);
+          setHasError(true);
+          setErrorMessage(error.response?.data.message || "");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -58,7 +65,15 @@ export const useFetchData = <T>(
         source.cancel("Request canceled");
       }
     };
-  }, [url]);
+  }, [token, url]);
 
-  return { data, isLoading, hasError, errorMessage, status, statusText };
+  return {
+    data,
+    isLoading,
+    hasError,
+    errorMessage,
+    status,
+    statusText,
+    error,
+  };
 };

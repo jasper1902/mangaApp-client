@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import Breadcrumb from "../components/Breadcrumb";
@@ -7,11 +7,15 @@ import { MangaTypeList } from "../types/manga.type";
 import { useAppDispatch } from "../store/store";
 
 import { useFetchData } from "../hook/useFetchData";
+import { useSelector } from "react-redux";
+import { searchSelector } from "../store/slice/searchSlice";
 
 const MangaByTag = () => {
   const dispatch = useAppDispatch();
   const [mangaCategory, setMangaCategory] = useState<boolean>();
   const { category } = useParams();
+
+  const searchReducer = useSelector(searchSelector);
   const { data } = useFetchData<MangaTypeList[]>(
     `${import.meta.env.VITE_API_URL}/api/manga/tags/${category}`
   );
@@ -19,13 +23,19 @@ const MangaByTag = () => {
     category === "manga" ? setMangaCategory(true) : setMangaCategory(false);
   }, [category, dispatch]);
 
+  const filteredMangaList = useMemo(() => {
+    return data?.filter((manga) =>
+      manga.title.toLowerCase().includes(searchReducer.title.toLowerCase())
+    );
+  }, [data, searchReducer]);
+
   return (
     <>
       {!mangaCategory ? (
         <div className="container mx-auto max-w-screen-xl mt-3">
           <Breadcrumb />
           <div className="grid grid-cols-4 gap-4 mt-5">
-            {data?.map((manga, index) => (
+            {filteredMangaList?.map((manga, index) => (
               <div
                 className="card bg-base-100 shadow-xl hover:scale-105 hover:transition-all duration-500"
                 key={index}
