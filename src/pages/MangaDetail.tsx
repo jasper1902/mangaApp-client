@@ -4,6 +4,7 @@ import Description from "../components/Description";
 import { useFetchData } from "../hook/useFetchData";
 import Loading from "../components/Loading";
 import { MangaTypeList } from "../types/manga.type";
+import Comments from "../components/Comments";
 
 const Manga = () => {
   const { slug } = useParams();
@@ -62,6 +63,7 @@ const Manga = () => {
               </div>
             </div>
           </div>
+          <Comments />
         </div>
       )}
     </>
