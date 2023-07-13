@@ -13,6 +13,7 @@ import { CiEdit } from "react-icons/ci";
 import { RiDeleteBin6Fill } from "react-icons/ri";
 import { MdReportProblem } from "react-icons/md";
 import Swal from "sweetalert2";
+import moment from "moment";
 
 interface CommentAuthor {
   username: string;
@@ -34,6 +35,7 @@ interface CommentResponseType {
 
 const Comments: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
+  const currentTime = moment();
   const [commentData, setCommentData] = useState<CommentType[]>([]);
 
   const userReducer = useSelector(userSelector);
@@ -177,6 +179,12 @@ const Comments: React.FC = () => {
                     />
                     {comment.author.username}
                   </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {moment
+                      .duration(currentTime.diff(comment.createdAt))
+                      .humanize()}{" "}
+                    ago
+                  </p>
                 </div>
                 <div className="dropdown">
                   <label tabIndex={0} className="cursor-pointer">
@@ -226,7 +234,7 @@ const Comments: React.FC = () => {
               </footer>
               <div>
                 <p className="break-words whitespace-pre-wrap">
-                  {comment.body}
+                  {comment.body}{" "}
                 </p>
               </div>
               <hr className="h-px my-6 bg-primary border-0" />
