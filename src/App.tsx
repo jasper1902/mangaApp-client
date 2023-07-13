@@ -13,6 +13,7 @@ import MangaDetailAdmin from "./pages/Admin/MangaDetailAdmin";
 import { userSelector } from "./store/slice/userSlice";
 import MangaCreate from "./pages/Admin/MangaCreate";
 import BookCreate from "./pages/Admin/BookCreate";
+import Login from "./pages/account/login";
 
 const MangaDetail = lazy(() => import("./pages/MangaDetail"));
 const MangaBookDetail = lazy(() => import("./pages/MangaBookDetail"));
@@ -44,6 +45,7 @@ const App = () => {
               </Suspense>
             }
           />
+          <Route path="/account/login" element={<Login />} />
 
           {userReducer.user.role && (
             <Route

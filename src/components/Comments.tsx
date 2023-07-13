@@ -1,11 +1,8 @@
-import React, { useEffect, useState } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+
+import React, { useEffect, useState, useMemo } from "react";
 import { Formik, Form, Field } from "formik";
 import { toast } from "react-toastify";
-import { userSelector } from "../store/slice/userSlice";
-import { usePostRequest } from "../hook/usePostRequest";
-import { useFetchData } from "../hook/useFetchData";
-import { useDeleteRequest } from "../hook/useDeleteRequest";
-import { toastOptions } from "../services/option";
 import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { BsThreeDots } from "react-icons/bs";
@@ -14,6 +11,12 @@ import { RiDeleteBin6Fill } from "react-icons/ri";
 import { MdReportProblem } from "react-icons/md";
 import Swal from "sweetalert2";
 import moment from "moment";
+
+import { userSelector } from "../store/slice/userSlice";
+import { usePostRequest } from "../hook/usePostRequest";
+import { useFetchData } from "../hook/useFetchData";
+import { useDeleteRequest } from "../hook/useDeleteRequest";
+import { toastOptions } from "../services/option";
 
 interface CommentAuthor {
   username: string;
@@ -35,39 +38,19 @@ interface CommentResponseType {
 
 const Comments: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  const currentTime = moment();
-  const [commentData, setCommentData] = useState<CommentType[]>([]);
+  const currentTime = useMemo(() => moment(), []);
 
+  const [commentData, setCommentData] = useState<CommentType[]>([]);
   const userReducer = useSelector(userSelector);
 
   const { data: fetchData } = useFetchData<CommentResponseType>(
     `${import.meta.env.VITE_API_URL}/api/comment/get/${slug}`
   );
 
-  useEffect(() => {
-    if (fetchData?.comments) {
-      setCommentData(fetchData.comments);
-    }
-  }, [fetchData]);
-
   const [deleteData, deleteRequestStatus] = useDeleteRequest<{
     comments: CommentType[];
     message: string;
   }>();
-
-  useEffect(() => {
-    if (deleteRequestStatus.hasError) {
-      toast.error(deleteRequestStatus.errorMessage, toastOptions);
-    }
-
-    if (deleteRequestStatus.statusText === "OK") {
-      if (deleteRequestStatus.data?.message) {
-        toast.success(deleteRequestStatus.data.message, toastOptions);
-        setCommentData(deleteRequestStatus.data.comments);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deleteRequestStatus.statusText, deleteRequestStatus.hasError]);
 
   const [postData, postRequestStatus] = usePostRequest<{
     comments: CommentType;
@@ -76,6 +59,31 @@ const Comments: React.FC = () => {
     `${import.meta.env.VITE_API_URL}/api/comment/create/${slug}`,
     userReducer.user.token
   );
+
+  useEffect(() => {
+    if (fetchData?.comments) {
+      setCommentData(fetchData.comments);
+    }
+  }, [fetchData]);
+
+  useEffect(() => {
+    if (deleteRequestStatus.hasError) {
+      toast.error(deleteRequestStatus.errorMessage, toastOptions);
+    }
+
+    if (
+      deleteRequestStatus.statusText === "OK" &&
+      deleteRequestStatus.data?.message
+    ) {
+      toast.success(deleteRequestStatus.data.message, toastOptions);
+      setCommentData(deleteRequestStatus.data.comments);
+    }
+  }, [
+    deleteRequestStatus.hasError,
+    deleteRequestStatus.statusText,
+    deleteRequestStatus.data?.message,
+    deleteRequestStatus.data?.comments,
+  ]);
 
   useEffect(() => {
     if (
@@ -96,15 +104,14 @@ const Comments: React.FC = () => {
   ]);
 
   useEffect(() => {
-    if (postRequestStatus.data && postRequestStatus.data.comments) {
+    if (postRequestStatus.data?.comments) {
       const updatedCommentData = [
         postRequestStatus.data.comments,
         ...commentData,
       ];
       setCommentData(updatedCommentData);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [postRequestStatus?.data?.comments]);
+  }, [postRequestStatus.data?.comments]);
 
   const showConfirmationDialog = async (): Promise<boolean> => {
     const swalWithBootstrapButtons = Swal.mixin({

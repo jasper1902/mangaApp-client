@@ -1,40 +1,18 @@
 import { useCallback, useEffect } from "react";
-import {
-  UserType,
-  getUser,
-  logoutUser,
-  updateUser,
-  userSelector,
-} from "../store/slice/userSlice";
+import { getUser, logoutUser, userSelector } from "../store/slice/userSlice";
 import { useAppDispatch } from "../store/store";
 import { useSelector } from "react-redux";
-import { usePostRequest } from "../hook/usePostRequest";
 import { updateSearch } from "../store/slice/searchSlice";
 import { Link } from "react-router-dom";
 import UserDropdown from "./UserDropdown";
 import Theme from "./Theme";
-import LoginForm, { InitialIdentifierType } from "./LoginForm";
-import { toast } from "react-toastify";
-import { toastOptions } from "../services/option";
+import LoginForm from "./LoginForm";
+
+import RegisterForm from "./RegisterForm";
 
 const Nav = () => {
   const dispatch = useAppDispatch();
   const userReducer = useSelector(userSelector);
-
-  const [postData, { data: loginData, errorMessage, hasError }] =
-    usePostRequest<UserType>(`${import.meta.env.VITE_API_URL}/api/login`);
-
-  useEffect(() => {
-    if (hasError) {
-      toast.error(errorMessage, toastOptions);
-    }
-  }, [errorMessage, hasError]);
-
-  useEffect(() => {
-    if (loginData) {
-      dispatch(updateUser(loginData));
-    }
-  }, [loginData, dispatch]);
 
   const onChangeSearchState = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(updateSearch({ title: e.target.value }));
@@ -42,10 +20,6 @@ const Nav = () => {
 
   const onClickLogout = () => {
     dispatch(logoutUser());
-  };
-
-  const onSubmitLogin = async (values: InitialIdentifierType) => {
-    postData({ user: values });
   };
 
   const getUserDispatch = useCallback(() => dispatch(getUser()), [dispatch]);
@@ -82,7 +56,7 @@ const Nav = () => {
                   htmlFor="my_modal_7"
                   className="btn btn-ghost border-gray-200 p-3 m-1"
                 >
-                  Login
+                  Sign up
                 </label>
               ) : (
                 <UserDropdown
@@ -96,7 +70,8 @@ const Nav = () => {
       </div>
 
       {!userReducer.loggedIn && (
-        <LoginForm userReducer={userReducer} onSubmitLogin={onSubmitLogin} />
+        // <LoginForm userReducer={userReducer} />
+        <RegisterForm userReducer={userReducer} />
       )}
     </>
   );

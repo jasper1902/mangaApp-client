@@ -52,13 +52,14 @@ export const usePostRequest = <T>(
             }, 100);
           },
         });
-        if (response.statusText !== "OK") {
-          throw new Error("Server response was not ok");
+        if (response.statusText === "OK" || response.statusText === "Created") {
+          setData(response.data);
+          setStatus(response.status);
+          setStatusText(response.statusText);
+          setProgress(null);
         }
-        setData(response.data);
-        setStatus(response.status);
-        setStatusText(response.statusText);
-        setProgress(null);
+
+        throw new Error("Server response was not ok");
       } catch (error) {
         if (axios.isAxiosError(error)) {
           setError(error);
