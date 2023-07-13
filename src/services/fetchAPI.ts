@@ -20,3 +20,15 @@ export const deleteMangaBook = async (
   );
   return response;
 };
+
+export const deleteComment = async (
+  mangaSlug: string,
+  commentId: string,
+  token: string
+) => {
+  const response = await axios.delete(
+    `${apiBaseUrl}/api/comment/delete/${mangaSlug}/${commentId}`,
+    { headers: { Authorization: `token ${token}` } }
+  );
+  return response;
+};

@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 import { FaPlus } from "react-icons/fa";
 import { useFetchData } from "../../hook/useFetchData";
-import { useFilteredMangaList } from "../../hook/useSearch";
+import { useFilteredMangaList } from "../../hook/useFilteredMangaList";
 
 const Dashboard = () => {
   const searchReducer = useSelector(searchSelector);

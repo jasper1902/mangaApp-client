@@ -1,63 +1,143 @@
-import { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Formik, Form, Field } from "formik";
+import { toast } from "react-toastify";
+import { userSelector } from "../store/slice/userSlice";
+import { usePostRequest } from "../hook/usePostRequest";
+import { useFetchData } from "../hook/useFetchData";
+import { useDeleteRequest } from "../hook/useDeleteRequest";
+import { toastOptions } from "../services/option";
 import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { toast } from "react-toastify";
 import { BsThreeDots } from "react-icons/bs";
 import { CiEdit } from "react-icons/ci";
 import { RiDeleteBin6Fill } from "react-icons/ri";
 import { MdReportProblem } from "react-icons/md";
-import { userSelector } from "../store/slice/userSlice";
-import { usePostRequest } from "../hook/usePostRequest";
-import { useFetchData } from "../hook/useFetchData";
-import { toastOptions } from "../services/option";
+import Swal from "sweetalert2";
+
+interface CommentAuthor {
+  username: string;
+  image: string;
+}
 
 interface CommentType {
   id: string;
   body: string;
-  createdAt: Date;
-  updatedAt: Date;
-  author: {
-    username: string;
-    image: string;
-  };
+  createdAt: string;
+  updatedAt: string;
+  author: CommentAuthor;
+}
+
+interface CommentResponseType {
+  message?: string;
+  comments?: CommentType[];
 }
 
 const Comments: React.FC = () => {
-  const { slug } = useParams();
+  const { slug } = useParams<{ slug: string }>();
+  const [commentData, setCommentData] = useState<CommentType[]>([]);
+
   const userReducer = useSelector(userSelector);
 
-  const [postData, { statusText, hasError, errorMessage }] = usePostRequest<{
-    body: string;
+  const { data: fetchData } = useFetchData<CommentResponseType>(
+    `${import.meta.env.VITE_API_URL}/api/comment/get/${slug}`
+  );
+
+  useEffect(() => {
+    if (fetchData?.comments) {
+      setCommentData(fetchData.comments);
+    }
+  }, [fetchData]);
+
+  const [deleteData, deleteRequestStatus] = useDeleteRequest<{
+    comments: CommentType[];
+    message: string;
+  }>();
+
+  useEffect(() => {
+    if (deleteRequestStatus.hasError) {
+      toast.error(deleteRequestStatus.errorMessage, toastOptions);
+    }
+
+    if (deleteRequestStatus.statusText === "OK") {
+      if (deleteRequestStatus.data?.message) {
+        toast.success(deleteRequestStatus.data.message, toastOptions);
+        setCommentData(deleteRequestStatus.data.comments);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deleteRequestStatus.statusText, deleteRequestStatus.hasError]);
+
+  const [postData, postRequestStatus] = usePostRequest<{
+    comments: CommentType;
+    message: string;
   }>(
     `${import.meta.env.VITE_API_URL}/api/comment/create/${slug}`,
     userReducer.user.token
   );
 
   useEffect(() => {
-    if (statusText === "OK") {
-      toast.success(`Comment created successfully`, toastOptions);
+    if (
+      postRequestStatus.statusText === "OK" &&
+      postRequestStatus.data?.message
+    ) {
+      toast.success(postRequestStatus.data.message, toastOptions);
     }
 
-    if (hasError) {
-      toast.success(errorMessage, toastOptions);
+    if (postRequestStatus.hasError && postRequestStatus.errorMessage) {
+      toast.error(postRequestStatus.errorMessage, toastOptions);
     }
-  }, [errorMessage, hasError, statusText]);
+  }, [
+    postRequestStatus.statusText,
+    postRequestStatus.data?.message,
+    postRequestStatus.hasError,
+    postRequestStatus.errorMessage,
+  ]);
 
-  const { data } = useFetchData<{ comments: CommentType[] }>(
-    `${import.meta.env.VITE_API_URL}/api/comment/get/${slug}`
-  );
+  useEffect(() => {
+    if (postRequestStatus.data && postRequestStatus.data.comments) {
+      const updatedCommentData = [
+        postRequestStatus.data.comments,
+        ...commentData,
+      ];
+      setCommentData(updatedCommentData);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [postRequestStatus?.data?.comments]);
+
+  const showConfirmationDialog = async (): Promise<boolean> => {
+    const swalWithBootstrapButtons = Swal.mixin({
+      customClass: {
+        confirmButton: "btn btn-success m-3",
+        cancelButton: "btn btn-error m-3",
+      },
+      buttonsStyling: false,
+    });
+
+    const result = await swalWithBootstrapButtons.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "No, cancel!",
+      reverseButtons: true,
+    });
+
+    return result.isConfirmed;
+  };
+
+  if (!slug) return null;
 
   return (
     <>
       <Formik
         initialValues={{ body: "" }}
         onSubmit={(values, { resetForm }) => {
-          postData(values);
+          postData({ comments: values });
           resetForm();
         }}
       >
-        <Form className="w-full max-w-xl rounded-lg px-4 pt-2 mx-auto">
+        <Form className="w-full rounded-lg px-4 pt-2 mx-auto">
           <div className="flex flex-wrap -mx-3 mb-6">
             <h2 className="px-4 pt-3 pb-2 text-gray-800 text-lg">
               Add a new comment
@@ -85,8 +165,8 @@ const Comments: React.FC = () => {
             </div>
           </div>
 
-          {data?.comments.map((comment: CommentType) => (
-            <article className="p-2 text-base rounded-lg " key={comment.id}>
+          {commentData.map((comment: CommentType) => (
+            <article className="p-2 text-base rounded-lg" key={comment.id}>
               <footer className="flex justify-between items-center mb-2">
                 <div className="flex items-center">
                   <p className="inline-flex items-center mr-3 text-sm">
@@ -113,7 +193,19 @@ const Comments: React.FC = () => {
                         </a>
                       </li>
                       <li>
-                        <a>
+                        <a
+                          onClick={async () => {
+                            const confirmed = await showConfirmationDialog();
+                            if (confirmed) {
+                              deleteData(
+                                `${
+                                  import.meta.env.VITE_API_URL
+                                }/api/comment/delete/${slug}/${comment.id}`,
+                                userReducer.user.token
+                              );
+                            }
+                          }}
+                        >
                           delete <RiDeleteBin6Fill />
                         </a>
                       </li>
@@ -121,7 +213,7 @@ const Comments: React.FC = () => {
                   ) : (
                     <ul
                       tabIndex={0}
-                      className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
+                      className="dropdown-content z-[1] menu p-2 shado  w bg-base-100 rounded-box w-52"
                     >
                       <li>
                         <a>
@@ -132,8 +224,12 @@ const Comments: React.FC = () => {
                   )}
                 </div>
               </footer>
-              <p>{comment.body}</p>
-              <hr className="h-px my-6 bg-primary border-0 "></hr>
+              <div>
+                <p className="break-words whitespace-pre-wrap">
+                  {comment.body}
+                </p>
+              </div>
+              <hr className="h-px my-6 bg-primary border-0" />
             </article>
           ))}
         </Form>

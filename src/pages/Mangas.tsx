@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 
 import { searchSelector } from "../store/slice/searchSlice";
 import { useFetchData } from "../hook/useFetchData";
-import { useFilteredMangaList } from "../hook/useSearch";
+import { useFilteredMangaList } from "../hook/useFilteredMangaList";
 
 const Mangas = () => {
   const searchReducer = useSelector(searchSelector);
@@ -43,6 +43,7 @@ const Mangas = () => {
           </div>
         ))}
       </div>
+
     </div>
   );
 };

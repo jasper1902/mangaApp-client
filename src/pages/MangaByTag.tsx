@@ -9,7 +9,7 @@ import { useAppDispatch } from "../store/store";
 import { useFetchData } from "../hook/useFetchData";
 import { useSelector } from "react-redux";
 import { searchSelector } from "../store/slice/searchSlice";
-import { useFilteredMangaList } from "../hook/useSearch";
+import { useFilteredMangaList } from "../hook/useFilteredMangaList";
 
 const MangaByTag = () => {
   const dispatch = useAppDispatch();

@@ -63,6 +63,7 @@ const Manga = () => {
               </div>
             </div>
           </div>
+
           <Comments />
         </div>
       )}
