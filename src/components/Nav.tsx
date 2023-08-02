@@ -6,7 +6,6 @@ import { updateSearch } from "../store/slice/searchSlice";
 import { Link } from "react-router-dom";
 import UserDropdown from "./UserDropdown";
 import Theme from "./Theme";
-import LoginForm from "./LoginForm";
 
 import RegisterForm from "./RegisterForm";
 
@@ -42,7 +41,7 @@ const Nav = () => {
             </div>
             <div className="form-control">
               <input
-                type="text"
+                type="search"
                 placeholder="Search"
                 className="input input-bordered input-primary w-48 md:w-64"
                 onChange={onChangeSearchState}

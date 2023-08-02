@@ -39,7 +39,7 @@ export const usePostRequest = <T>(
         setErrorMessage("");
         setError(null);
         const response: AxiosResponse<T> = await axios.post(url, requestData, {
-          headers: { Authorization: `token ${token}` },
+          headers: { Authorization: `Bearer ${token}` },
           onUploadProgress: (progressEvent: AxiosProgressEvent) => {
             const timer = setTimeout(() => {
               if (progressEvent.total !== undefined) {
@@ -58,7 +58,6 @@ export const usePostRequest = <T>(
           setStatusText(response.statusText);
           setProgress(null);
         }
-
         throw new Error("Server response was not ok");
       } catch (error) {
         if (axios.isAxiosError(error)) {

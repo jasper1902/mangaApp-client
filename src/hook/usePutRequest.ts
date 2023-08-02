@@ -39,7 +39,7 @@ export const usePutRequest = <T>(
         setErrorMessage("");
         setError(null);
         const response: AxiosResponse<T> = await axios.put(url, requestData, {
-          headers: { Authorization: `token ${token}` },
+          headers: { Authorization: `Bearer ${token}` },
           onUploadProgress: (progressEvent: AxiosProgressEvent) => {
             const timer = setTimeout(() => {
               if (progressEvent.total !== undefined) {

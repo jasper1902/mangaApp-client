@@ -16,7 +16,7 @@ const Mangas = () => {
   const filteredMangaList = useFilteredMangaList(data || [], searchReducer);
 
   return (
-    <div className="container mx-auto lg:max-w-screen-xl max-w-screen-sm mt-3">
+    <div className="container mx-auto lg:max-w-screen-xl max-w-screen-sm mt-3 ">
       <Breadcrumb />
       <div className="grid lg:grid-cols-4 md:grid-cols-3 grid-cols-2 gap-4 mt-5">
         {filteredMangaList?.map((manga, index) => (
@@ -35,7 +35,7 @@ const Mangas = () => {
                 />
               </figure>
               <div className="card-body">
-                <h2 className="card-title lg:text-xl md:text-lg sm:text-base text-sm">
+                <h2 className="card-title lg:text-xl md:text-lg sm:text-base text-sm ">
                   {manga.title}
                 </h2>
               </div>

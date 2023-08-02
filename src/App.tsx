@@ -13,7 +13,7 @@ import MangaDetailAdmin from "./pages/Admin/MangaDetailAdmin";
 import { userSelector } from "./store/slice/userSlice";
 import MangaCreate from "./pages/Admin/MangaCreate";
 import BookCreate from "./pages/Admin/BookCreate";
-import Login from "./pages/account/login";
+import Login from "./pages/account/Login";
 
 const MangaDetail = lazy(() => import("./pages/MangaDetail"));
 const MangaBookDetail = lazy(() => import("./pages/MangaBookDetail"));

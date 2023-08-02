@@ -75,7 +75,7 @@ export const getUser = createAsyncThunk(
 
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/account/getme`,
-        { headers: { Authorization: `token ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       dispatch(updateUser(response.data));
     } catch (error) {

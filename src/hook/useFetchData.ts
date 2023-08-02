@@ -35,7 +35,7 @@ export const useFetchData = <T>(
       try {
         source = axios.CancelToken.source();
         const response: AxiosResponse<T> = await axios.get(url, {
-          headers: { Authorization: `token ${token}` },
+          headers: { Authorization: `Bearer ${token}` },
           cancelToken: source.token,
         });
         if (response.statusText !== "OK") {
