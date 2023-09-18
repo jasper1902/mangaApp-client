@@ -28,7 +28,7 @@ const MangaCreate = () => {
   const userReducer = useSelector(userSelector);
   const fileInputRef = useRef(null);
 
-  const [postData, { progress, statusText }] = usePostRequest<MangaTypeList>(
+  const [postData, { progress, status }] = usePostRequest<MangaTypeList>(
     `${import.meta.env.VITE_API_URL}/api/manga/create`,
     userReducer.user.token
   );
@@ -44,11 +44,11 @@ const MangaCreate = () => {
   };
 
   useEffect(() => {
-    if (statusText === "OK") {
+    if (status === 200) {
       toast.success("Create manga book successfully", toastOptions);
       navigate("/dashboard");
     }
-  }, [statusText, navigate]);
+  }, [status, navigate]);
 
   return (
     <div className="container mx-auto lg:max-w-screen-xl max-w-screen-sm mt-3">

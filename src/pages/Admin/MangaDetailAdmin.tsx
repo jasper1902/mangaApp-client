@@ -26,7 +26,7 @@ const MangaDetailAdmin = () => {
     `${import.meta.env.VITE_API_URL}/api/manga/${slug}`
   );
 
-  const [putData, { statusText, hasError, errorMessage }] =
+  const [putData, { status, hasError, errorMessage }] =
     usePutRequest<MangaTypeList>(
       `${import.meta.env.VITE_API_URL}/api/manga/update/${data?._id}`,
       userReducer.user.token
@@ -48,7 +48,7 @@ const MangaDetailAdmin = () => {
   };
 
   useEffect(() => {
-    if (statusText === "OK") {
+    if (status === 200) {
       toast.success("Update manga successfully", toastOptions);
       navigate("/dashboard");
     }
@@ -56,7 +56,7 @@ const MangaDetailAdmin = () => {
     if (hasError) {
       toast.error(errorMessage, toastOptions);
     }
-  }, [errorMessage, hasError, navigate, statusText]);
+  }, [errorMessage, hasError, navigate, status]);
 
   const showConfirmationDialog = async (title: string): Promise<boolean> => {
     const swalWithBootstrapButtons = Swal.mixin({
@@ -167,7 +167,7 @@ const MangaDetailAdmin = () => {
               <div className="col-span-4">
                 <div>
                   <img
-                    src={`${import.meta.env.VITE_IMG_URL}/src/assets${
+                    src={`${import.meta.env.VITE_IMG_URL}${
                       data.image
                     }`}
                     alt=""

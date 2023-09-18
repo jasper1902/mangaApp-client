@@ -52,7 +52,7 @@ export const usePutRequest = <T>(
             }, 100);
           },
         });
-        if (response.statusText !== "OK") {
+        if (response.status !== 200) {
           throw new Error("Server response was not ok");
         }
         setData(response.data);

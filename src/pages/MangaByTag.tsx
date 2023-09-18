@@ -40,7 +40,7 @@ const MangaByTag = () => {
                 <Link to={`/manga/${manga.slug}`}>
                   <figure>
                     <img
-                      src={`${import.meta.env.VITE_IMG_URL}/src/assets${
+                      src={`${import.meta.env.VITE_IMG_URL}${
                         manga.image
                       }`}
                       alt=""

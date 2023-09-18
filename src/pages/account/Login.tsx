@@ -39,7 +39,7 @@ const Login = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userReducer.loggedIn]);
-  const [postData, { data: loginData, errorMessage, hasError, statusText }] =
+  const [postData, { data: loginData, errorMessage, hasError, status }] =
     usePostRequest<UserType>(
       `${import.meta.env.VITE_API_URL}/api/account/login`
     );
@@ -49,12 +49,12 @@ const Login = () => {
       toast.error(errorMessage, toastOptions);
     }
 
-    if (loginData && statusText === "OK") {
+    if (loginData && status === 200) {
       dispatch(updateUser(loginData));
       navigate("/");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loginData, dispatch, statusText, errorMessage, hasError]);
+  }, [loginData, dispatch, status, errorMessage, hasError]);
 
   const onSubmitLogin = async (values: InitialIdentifierType) => {
     postData({ user: values });

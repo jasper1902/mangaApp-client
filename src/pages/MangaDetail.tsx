@@ -29,7 +29,7 @@ const Manga = () => {
           <div className="grid grid-cols-12 gap-4">
             <div className="col-span-4">
               <img
-                src={`${import.meta.env.VITE_IMG_URL}/src/assets${data?.image}`}
+                src={`${import.meta.env.VITE_IMG_URL}${data?.image}`}
                 alt=""
               />
             </div>

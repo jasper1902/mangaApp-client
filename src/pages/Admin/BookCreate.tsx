@@ -46,14 +46,14 @@ const BookCreate = () => {
     `${import.meta.env.VITE_API_URL}/api/manga/${slug}`
   );
 
-  const [postData, { progress, statusText, hasError, errorMessage }] =
+  const [postData, { progress, status, hasError, errorMessage }] =
     usePostRequest<MangaTypeList>(
       `${import.meta.env.VITE_API_URL}/api/manga/create/book`,
       userReducer.user.token
     );
 
   useEffect(() => {
-    if (statusText === "OK") {
+    if (status === 200) {
       toast.success("Create manga book successfully", toastOptions);
       navigate("/dashboard");
     }
@@ -63,7 +63,7 @@ const BookCreate = () => {
       navigate(`/dashboard`);
     }
     
-  }, [statusText, navigate, hasError, errorMessage, slug]);
+  }, [status, navigate, hasError, errorMessage, slug]);
 
   if (!manga) {
     return null;
@@ -99,7 +99,7 @@ const BookCreate = () => {
                 <div className="col-span-4">
                   <div>
                     <img
-                      src={`${import.meta.env.VITE_IMG_URL}/src/assets${
+                      src={`${import.meta.env.VITE_IMG_URL}${
                         manga.image
                       }`}
                       alt=""

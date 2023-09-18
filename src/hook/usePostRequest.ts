@@ -52,7 +52,7 @@ export const usePostRequest = <T>(
             }, 100);
           },
         });
-        if (response.statusText === "OK" || response.statusText === "Created") {
+        if (response.status === 200 || response.status === 201) {
           setData(response.data);
           setStatus(response.status);
           setStatusText(response.statusText);

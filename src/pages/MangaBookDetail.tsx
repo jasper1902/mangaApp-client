@@ -21,7 +21,7 @@ const MangaBookDetail = () => {
         >
           <img
             decoding="async"
-            src={`${import.meta.env.VITE_IMG_URL}/src/assets${image}`}
+            src={`${import.meta.env.VITE_IMG_URL}${image}`}
             alt=""
             loading="lazy"
             style={{ maxWidth: "100%", height: "auto" }}

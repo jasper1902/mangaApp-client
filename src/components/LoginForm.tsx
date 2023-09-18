@@ -48,7 +48,6 @@ const LoginForm = ({ userReducer }: { userReducer: UserInitialStateType }) => {
   const onSubmitLogin = async (values: InitialIdentifierType) => {
     postData({ user: values });
   };
-
   return (
     <>
       <input type="checkbox" id="my_modal_7" className="modal-toggle" />

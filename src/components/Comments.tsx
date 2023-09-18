@@ -72,7 +72,7 @@ const Comments: React.FC = () => {
     }
 
     if (
-      deleteRequestStatus.statusText === "OK" &&
+      deleteRequestStatus.status === 200 &&
       deleteRequestStatus.data?.message
     ) {
       toast.success(deleteRequestStatus.data.message, toastOptions);
@@ -80,14 +80,14 @@ const Comments: React.FC = () => {
     }
   }, [
     deleteRequestStatus.hasError,
-    deleteRequestStatus.statusText,
+    deleteRequestStatus.status,
     deleteRequestStatus.data?.message,
     deleteRequestStatus.data?.comments,
   ]);
 
   useEffect(() => {
     if (
-      postRequestStatus.statusText === "OK" &&
+      postRequestStatus.status === 200 &&
       postRequestStatus.data?.message
     ) {
       toast.success(postRequestStatus.data.message, toastOptions);
@@ -97,7 +97,7 @@ const Comments: React.FC = () => {
       toast.error(postRequestStatus.errorMessage, toastOptions);
     }
   }, [
-    postRequestStatus.statusText,
+    postRequestStatus.status,
     postRequestStatus.data?.message,
     postRequestStatus.hasError,
     postRequestStatus.errorMessage,

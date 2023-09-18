@@ -38,7 +38,7 @@ export const useFetchData = <T>(
           headers: { Authorization: `Bearer ${token}` },
           cancelToken: source.token,
         });
-        if (response.statusText !== "OK") {
+        if (response.status !== 200) {
           throw new Error("Server response was not ok");
         }
         setData(response.data);

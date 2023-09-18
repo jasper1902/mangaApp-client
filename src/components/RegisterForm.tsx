@@ -36,14 +36,13 @@ const RegisterForm = ({
   const [postData, postRequestStatus] = usePostRequest<{ message: string }>(
     `${import.meta.env.VITE_API_URL}/api/account/register`
   );
-  console.log(postRequestStatus);
   useEffect(() => {
     if (postRequestStatus.hasError) {
       toast.error(postRequestStatus.errorMessage, toastOptions);
     }
 
     if (
-      postRequestStatus.statusText === "Created" &&
+      postRequestStatus.status === 201 &&
       postRequestStatus?.data?.message
     ) {
       const modal = document.getElementById("my_modal_7") as HTMLInputElement;
@@ -59,7 +58,6 @@ const RegisterForm = ({
     postRequestStatus.status,
     postRequestStatus.hasError,
     postRequestStatus.errorMessage,
-    postRequestStatus.statusText,
   ]);
 
   return (
